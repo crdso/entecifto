@@ -1,0 +1,14 @@
+# Configuração de build para o Netlify
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Versão do Node usada no build (Vite precisa de Node 18+)
+[build.environment]
+  NODE_VERSION = "20"
+
+# As variáveis abaixo devem ser cadastradas no painel do Netlify:
+# Site -> Site configuration -> Environment variables
+#   VITE_SUPABASE_URL
+#   VITE_SUPABASE_ANON_KEY
+#   VITE_ADMIN_EMAIL
