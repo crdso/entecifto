@@ -32,3 +32,4 @@ dist-ssr
 .vite
 .claude
 vite-dev.log
+supabase/.temp
