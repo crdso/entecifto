@@ -43,7 +43,7 @@ export default function ShirtSection() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="order-1 text-center lg:text-left"
           >
-            <span className="inline-block mb-4 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-signal text-xs font-medium tracking-[0.2em] uppercase">
+            <span className="inline-block mb-4 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-lavender text-xs font-medium tracking-[0.2em] uppercase">
               Edição Oficial
             </span>
             <h2 className="font-display font-bold text-4xl sm:text-5xl md:text-6xl text-data leading-tight">
@@ -59,7 +59,7 @@ export default function ShirtSection() {
                   key={s.label}
                   className="flex-1 rounded-2xl border border-signal/20 bg-white/5 backdrop-blur-md px-5 py-4 text-center lg:text-left"
                 >
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-signal/70 font-medium">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-lavender/90 font-medium">
                     {s.label}
                   </div>
                   <div className="mt-1 text-data font-medium text-sm sm:text-base">

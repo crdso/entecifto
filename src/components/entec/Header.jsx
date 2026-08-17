@@ -104,14 +104,14 @@ export default function Header() {
                 <Link
                   to={item.to}
                   onClick={() => setOpen(false)}
-                  className="w-full text-left py-3 text-data/80 hover:text-signal text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                  className="w-full text-left py-3 text-data/80 hover:text-lavender text-sm font-medium uppercase tracking-[0.15em] transition-colors"
                 >
                   {item.label}
                 </Link>
               ) : (
                 <button
                   onClick={() => go(item.id)}
-                  className="w-full text-left py-3 text-data/80 hover:text-signal text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                  className="w-full text-left py-3 text-data/80 hover:text-lavender text-sm font-medium uppercase tracking-[0.15em] transition-colors"
                 >
                   {item.label}
                 </button>

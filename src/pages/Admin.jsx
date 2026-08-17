@@ -214,7 +214,7 @@ export default function Admin() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-data">
-        <Loader2 className="h-6 w-6 animate-spin text-signal" />
+        <Loader2 className="h-6 w-6 animate-spin text-lavender" />
       </div>
     );
   }
@@ -224,7 +224,7 @@ export default function Admin() {
       <div className="min-h-screen flex items-center justify-center bg-void px-4 py-12">
         <div className="w-full max-w-md rounded-2xl border border-signal/25 bg-void/70 bg-gradient-to-b from-energy/40 to-void p-8 shadow-[0_30px_80px_-20px_rgba(36,107,253,0.45)] backdrop-blur-md">
           <div className="flex items-center gap-3 mb-6">
-            <ShieldCheck className="h-6 w-6 text-signal" />
+            <ShieldCheck className="h-6 w-6 text-lavender" />
             <h1 className="font-display text-xl font-bold text-data">Painel administrativo</h1>
           </div>
 
@@ -282,7 +282,7 @@ export default function Admin() {
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
         <div className="flex items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="h-6 w-6 text-signal" />
+            <ShieldCheck className="h-6 w-6 text-lavender" />
             <h1 className="font-display font-bold text-2xl sm:text-3xl tracking-tight">
               Painel Administrativo
             </h1>
@@ -300,7 +300,7 @@ export default function Admin() {
               key={c.label}
               className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4"
             >
-              <div className="text-[11px] uppercase tracking-[0.16em] text-signal/70 font-medium">
+              <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium">
                 {c.label}
               </div>
               <div className="mt-1 text-2xl font-semibold text-data">{c.value}</div>
@@ -346,7 +346,7 @@ export default function Admin() {
         <div className="rounded-2xl border border-signal/20 bg-void/40 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-signal" />
+              <Loader2 className="h-6 w-6 animate-spin text-lavender" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-20 text-center text-dim/50 text-sm">
@@ -356,7 +356,7 @@ export default function Admin() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[11px] uppercase tracking-[0.14em] text-signal/70 border-b border-signal/15">
+                  <tr className="text-left text-[11px] uppercase tracking-[0.14em] text-lavender/70 border-b border-signal/15">
                     <th className="px-4 py-3 font-medium">Nome</th>
                     <th className="px-4 py-3 font-medium">Nome camisa</th>
                     <th className="px-4 py-3 font-medium">Telefone</th>

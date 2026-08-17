@@ -17,7 +17,7 @@ export default function PageHeader() {
         </Link>
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm text-dim/70 hover:text-signal transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-dim/70 hover:text-lavender transition-colors"
         >
           <ArrowLeft className="h-4 w-4" /> Início
         </Link>

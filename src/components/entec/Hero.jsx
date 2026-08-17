@@ -43,7 +43,7 @@ export default function Hero() {
           ENTEC 2026
         </h1>
 
-        <p className="mt-4 text-xs sm:text-sm font-medium tracking-[0.25em] uppercase text-signal/80">
+        <p className="mt-4 text-xs sm:text-sm font-medium tracking-[0.25em] uppercase text-lavender">
           Encontro de Tecnologia · IFTO
         </p>
 

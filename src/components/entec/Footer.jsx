@@ -29,7 +29,7 @@ export default function Footer() {
       >
         <div className="grid gap-10 sm:grid-cols-2 text-center">
           <div>
-            <h4 className="text-[11px] uppercase tracking-[0.18em] text-signal/70 font-medium mb-4">
+            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/90 font-medium mb-4">
               Navegação
             </h4>
             <ul className="space-y-2.5">
@@ -42,7 +42,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] uppercase tracking-[0.18em] text-signal/70 font-medium mb-4">
+            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/90 font-medium mb-4">
               O Evento
             </h4>
             <ul className="space-y-2.5">
@@ -61,7 +61,7 @@ export default function Footer() {
           </p>
           <a
             href="#"
-            className="group inline-flex items-center gap-2 text-xs text-dim/60 hover:text-signal transition-colors"
+            className="group inline-flex items-center gap-2 text-xs text-dim/60 hover:text-lavender transition-colors"
           >
             Voltar ao topo
             <span className="flex h-7 w-7 items-center justify-center rounded-full border border-signal/20 group-hover:border-signal/60 transition-colors">

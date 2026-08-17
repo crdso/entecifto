@@ -31,7 +31,7 @@ export default function Sobre() {
         className="max-w-3xl mx-auto px-6 pt-24 pb-28"
       >
         <header className="text-center mb-12">
-          <p className="text-xs sm:text-sm font-medium tracking-[0.3em] uppercase text-signal/80">
+          <p className="text-xs sm:text-sm font-medium tracking-[0.3em] uppercase text-lavender">
             Encontro de Tecnologia · IFTO
           </p>
           <h1

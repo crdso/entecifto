@@ -140,7 +140,7 @@ export default function PurchaseModal({ open, onClose }) {
 
             {success ? (
               <div className="text-center py-5">
-                <CheckCircle2 className="h-12 w-12 text-signal mx-auto" />
+                <CheckCircle2 className="h-12 w-12 text-lavender mx-auto" />
                 <h3 className="mt-4 font-display font-bold text-xl text-data">
                   Inscrição registrada!
                 </h3>
@@ -157,7 +157,7 @@ export default function PurchaseModal({ open, onClose }) {
             ) : (
               <>
                 <div className="pr-6">
-                  <span className="inline-block mb-2.5 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-signal text-[10px] font-medium tracking-[0.18em] uppercase">
+                  <span className="inline-block mb-2.5 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-lavender text-[10px] font-medium tracking-[0.18em] uppercase">
                     Camisa Oficial
                   </span>
                   <h3 className="font-display font-bold text-xl sm:text-2xl text-data">

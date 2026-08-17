@@ -58,7 +58,7 @@ export default function Schedule() {
               style={{ boxShadow: "0 20px 60px -25px rgba(58,1,138,0.3)" }}
             >
               <div className="flex items-center gap-3 mb-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-signal/15 border border-signal/40 text-signal font-display font-bold">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-signal/15 border border-signal/40 text-lavender font-display font-bold">
                   {di + 1}
                 </span>
                 <h3 className="font-display font-bold text-2xl sm:text-3xl text-data tracking-wide">
@@ -76,7 +76,7 @@ export default function Schedule() {
                     transition={{ duration: 0.4, delay: ri * 0.08 }}
                     className="group flex items-center gap-4 py-4 pl-3 border-l-2 border-transparent hover:border-signal hover:bg-signal/5 rounded-r-lg transition-all duration-300"
                   >
-                    <span className="font-mono text-signal font-semibold text-sm sm:text-base w-16 shrink-0">
+                    <span className="font-mono text-lavender font-semibold text-sm sm:text-base w-16 shrink-0">
                       {row.time}
                     </span>
                     <span className="text-dim/80 text-sm sm:text-base group-hover:text-data transition-colors">

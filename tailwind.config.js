@@ -13,6 +13,7 @@ module.exports = {
   			void: '#050816',
   			energy: '#24104A',
   			signal: '#3a018a',
+  			lavender: '#a78bfa',
   			pulse: '#246BFD',
   			data: '#FFFFFF',
   			dim: '#D8DCE5',
