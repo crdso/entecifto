@@ -18,7 +18,7 @@ const BACK_ART_URL = "/images/back-art.jpg";
 const frontPrint = {
   x: 0.35, // lado esquerdo de quem veste (= direita de quem olha a frente)
   y: 0.62, // altura do peito
-  z: 0.02,
+  z: 0.04,
   scale: 0.4, // logo pequena
   rotation: 0,
 };
@@ -26,16 +26,16 @@ const frontPrint = {
 const backPrint = {
   x: 0, // centralizada nas costas
   y: 0.1,
-  z: -0.035,
-  scale: 1.1, // região central das costas
+  z: -0.12,
+  scale: 1.15, // região central das costas
   rotation: 0,
 };
 
 const nameLabelPrint = {
   x: 0, // posicione horizontalmente no centro das costas
   y: -0.85, // ajuste este valor para mover o texto para cima/baixo
-  z: -0.07, // empurra o texto levemente para frente da superfície
-  scale: 0.75, // largura do texto
+  z: -0.12, // empurra o texto levemente para frente da superfície
+  scale: 0.8, // largura do texto
   rotation: 0,
 };
 
@@ -227,17 +227,17 @@ export default function ShirtViewer3D() {
       const ray = new THREE.Raycaster(origin, dir, 0.1, 50);
       const hits = loadedModel ? ray.intersectObject(loadedModel, true) : [];
 
-      let pos, normal;
+      let pos;
+      // Normal sempre alinhada ao eixo Z (±Z) — os planos ficam retos/paralelos
+      // entre si e não inclinam com a curvatura da superfície do GLB.
+      const normal = new THREE.Vector3(0, 0, isBack ? -1 : 1);
       if (hits.length) {
         const hit = hits[0];
         pos = hit.point.clone();
-        normal = hit.face ? hit.face.normal.clone() : new THREE.Vector3(0, 0, isBack ? -1 : 1);
-        normal.transformDirection(hit.object.matrixWorld).normalize();
         pos.add(normal.clone().multiplyScalar(0.06)); // desloca mais pra frente para ficar acima de relevos
         pos.z += config.z; // ajuste fino do usuário (frente +, costas -)
       } else {
         pos = new THREE.Vector3(config.x, config.y, config.z);
-        normal = new THREE.Vector3(0, 0, isBack ? -1 : 1);
       }
 
       const img = texture.image;
@@ -258,7 +258,7 @@ export default function ShirtViewer3D() {
             "#include <map_fragment>",
             `#include <map_fragment>
              float _lum = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-             if (_lum < 0.08) discard;`
+             if (_lum < 0.03) discard;`
           );
         };
       }

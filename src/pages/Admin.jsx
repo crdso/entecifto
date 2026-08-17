@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,13 @@ const STATUS_LABEL = {
   pending_payment: "Pendente",
 };
 
+// Nome que vai estampado na camisa: usa o escolhido ou cai para o primeiro nome.
+const shirtName = (r) => {
+  const escolhido = (r.nome_camisa || "").trim();
+  if (escolhido) return escolhido;
+  return (r.nome || "").trim().split(/\s+/)[0] || "—";
+};
+
 export default function Admin() {
   const [session, setSession] = useState(null);
   const [rows, setRows] = useState([]);
@@ -35,6 +42,7 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const isAllowed = (user) => !ADMIN_EMAIL || (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
 
@@ -168,6 +176,25 @@ export default function Admin() {
     setSession(null);
     setPassword("");
     setError("");
+  };
+
+  const copyRow = async (r, mode) => {
+    const lines =
+      mode === "mini"
+        ? [`apelido camisa: ${shirtName(r)}`, `tamanho: ${r.tamanho}`]
+        : [
+            `nome da pessoa: ${r.nome}`,
+            `apelido camisa: ${shirtName(r)}`,
+            `tamanho: ${r.tamanho}`,
+            `telefone: ${r.telefone}`,
+          ];
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setCopiedId(`${r.id}:${mode}`);
+      setTimeout(() => setCopiedId(null), 1600);
+    } catch {
+      setError("Não foi possível copiar.");
+    }
   };
 
   const markDelivered = async (r) => {
@@ -331,6 +358,7 @@ export default function Admin() {
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-[0.14em] text-signal/70 border-b border-signal/15">
                     <th className="px-4 py-3 font-medium">Nome</th>
+                    <th className="px-4 py-3 font-medium">Nome camisa</th>
                     <th className="px-4 py-3 font-medium">Telefone</th>
                     <th className="px-4 py-3 font-medium">E-mail</th>
                     <th className="px-4 py-3 font-medium">Tam.</th>
@@ -344,6 +372,7 @@ export default function Admin() {
                   {filtered.map((r) => (
                     <tr key={r.id} className="border-b border-signal/10 hover:bg-signal/5">
                       <td className="px-4 py-3 font-medium text-data">{r.nome}</td>
+                      <td className="px-4 py-3 text-dim/80">{shirtName(r)}</td>
                       <td className="px-4 py-3 text-dim/80">{r.telefone}</td>
                       <td className="px-4 py-3 text-dim/80">{r.email}</td>
                       <td className="px-4 py-3 text-dim/80">{r.tamanho}</td>
@@ -373,21 +402,47 @@ export default function Admin() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        {r.status === "pago" && !r.delivered && (
-                          <button
-                            onClick={() => markDelivered(r)}
-                            disabled={updatingId === r.id}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-signal/30 bg-signal/10 px-3 py-1.5 text-xs font-medium text-data transition-all hover:bg-signal/20 disabled:opacity-50"
-                          >
-                            {updatingId === r.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <PackageCheck className="h-3.5 w-3.5" />
-                            )}
-                            Marcar como entregue
-                          </button>
-                        )}
-                        {r.delivered && <span className="text-xs text-dim/40">—</span>}
+                        <div className="flex flex-col items-start gap-1.5">
+                          {r.status === "pago" && !r.delivered && (
+                            <button
+                              onClick={() => markDelivered(r)}
+                              disabled={updatingId === r.id}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-signal/30 bg-signal/10 px-3 py-1.5 text-xs font-medium text-data transition-all hover:bg-signal/20 disabled:opacity-50"
+                            >
+                              {updatingId === r.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <PackageCheck className="h-3.5 w-3.5" />
+                              )}
+                              Marcar como entregue
+                            </button>
+                          )}
+                          {r.delivered && <span className="text-xs text-dim/40">—</span>}
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => copyRow(r, "full")}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-pulse/30 bg-pulse/10 px-3 py-1.5 text-xs font-medium text-data transition-all hover:bg-pulse/20"
+                            >
+                              {copiedId === `${r.id}:full` ? (
+                                <CopyCheck className="h-3.5 w-3.5" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                              {copiedId === `${r.id}:full` ? "Copiado" : "Copiar"}
+                            </button>
+                            <button
+                              onClick={() => copyRow(r, "mini")}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-pulse/30 bg-pulse/10 px-3 py-1.5 text-xs font-medium text-data transition-all hover:bg-pulse/20"
+                            >
+                              {copiedId === `${r.id}:mini` ? (
+                                <CopyCheck className="h-3.5 w-3.5" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                              {copiedId === `${r.id}:mini` ? "Copiado" : "Copiar 2"}
+                            </button>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ))}

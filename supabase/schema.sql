@@ -8,6 +8,7 @@
 create table if not exists public.inscricoes (
   id uuid primary key default gen_random_uuid(),
   nome text not null,
+  nome_camisa text, -- nome escolhido para estampar na camisa (opcional)
   telefone text not null,
   email text not null,
   tamanho text not null,

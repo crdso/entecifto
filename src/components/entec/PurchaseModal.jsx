@@ -7,6 +7,7 @@ import { SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 const SIZES = ["PP", "P", "M", "G"];
 const VALOR = "R$ 60,00";
+const NOME_CAMISA_MAX = 20;
 
 function maskPhone(v) {
   let d = String(v || "").replace(/\D/g, "").slice(0, 11);
@@ -20,6 +21,11 @@ function maskPhone(v) {
 function validate(form) {
   const errs = {};
   if ((form.nome || "").trim().length < 3) errs.nome = "Informe seu nome completo.";
+  const nomeCamisa = (form.nome_camisa || "").trim();
+  if (nomeCamisa && nomeCamisa.length > NOME_CAMISA_MAX)
+    errs.nome_camisa = `Máximo de ${NOME_CAMISA_MAX} caracteres.`;
+  if (nomeCamisa && /[^A-Za-zÀ-ÿ0-9 .-]/.test(nomeCamisa))
+    errs.nome_camisa = "Use apenas letras, números, espaços, pontos e hífens.";
   const digits = String(form.telefone || "").replace(/\D/g, "");
   if (digits.length < 10 || digits.length > 11) errs.telefone = "Telefone inválido.";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((form.email || "").trim()))
@@ -29,7 +35,7 @@ function validate(form) {
 }
 
 export default function PurchaseModal({ open, onClose }) {
-  const [form, setForm] = useState({ nome: "", telefone: "", email: "", tamanho: "" });
+  const [form, setForm] = useState({ nome: "", nome_camisa: "", telefone: "", email: "", tamanho: "" });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -38,7 +44,7 @@ export default function PurchaseModal({ open, onClose }) {
   // Reset ao (re)abrir
   useEffect(() => {
     if (open) {
-      setForm({ nome: "", telefone: "", email: "", tamanho: "" });
+      setForm({ nome: "", nome_camisa: "", telefone: "", email: "", tamanho: "" });
       setErrors({});
       setServerError("");
       setSuccess(false);
@@ -73,6 +79,7 @@ export default function PurchaseModal({ open, onClose }) {
       const inscricao = await insertRow("inscricoes", {
         id: crypto.randomUUID(),
         nome: form.nome.trim(),
+        nome_camisa: form.nome_camisa.trim() || null,
         telefone: form.telefone,
         email: form.email.trim(),
         tamanho: form.tamanho,
@@ -118,7 +125,7 @@ export default function PurchaseModal({ open, onClose }) {
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md rounded-3xl border border-signal/25 bg-gradient-to-b from-energy/40 to-void p-5 sm:p-6 shadow-[0_30px_80px_-20px_rgba(36,107,253,0.45)]"
+            className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-signal/25 bg-gradient-to-b from-energy/40 to-void p-5 sm:p-6 shadow-[0_30px_80px_-20px_rgba(36,107,253,0.45)]"
           >
             <button
               onClick={onClose}
@@ -168,6 +175,27 @@ export default function PurchaseModal({ open, onClose }) {
                       placeholder="Seu nome completo"
                     />
                     {errors.nome && <p className="mt-1 text-xs text-red-400">{errors.nome}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-dim/70 mb-1.5">
+                      Nome na camisa (opcional)
+                    </label>
+                    <input
+                      className={inputClass}
+                      value={form.nome_camisa}
+                      onChange={(e) => setField("nome_camisa", e.target.value)}
+                      placeholder="Ex.: João, Jhow, JP…"
+                      maxLength={NOME_CAMISA_MAX}
+                    />
+                    <p className="mt-1 text-[11px] leading-relaxed text-dim/50">
+                      Caso este campo seja deixado em branco, será utilizado o primeiro nome
+                      informado. Nomes considerados ofensivos ou inadequados serão substituídos
+                      pelo primeiro nome do comprador.
+                    </p>
+                    {errors.nome_camisa && (
+                      <p className="mt-1 text-xs text-red-400">{errors.nome_camisa}</p>
+                    )}
                   </div>
 
                   <div>
