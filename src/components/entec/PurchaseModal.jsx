@@ -6,6 +6,7 @@ import { createPayment } from "@/lib/createPayment";
 import { SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 const SIZES = ["PP", "P", "M", "G"];
+const GENEROS = ["Masculino", "Feminino"];
 const VALOR = "R$ 60,00";
 const NOME_CAMISA_MAX = 20;
 
@@ -31,11 +32,12 @@ function validate(form) {
   if (!/^[^\s@]+@estudante\.ifto\.edu\.br$/i.test((form.email || "").trim()))
     errs.email = "Use seu e-mail institucional (@estudante.ifto.edu.br).";
   if (!SIZES.includes(form.tamanho)) errs.tamanho = "Selecione um tamanho.";
+  if (!GENEROS.includes(form.genero)) errs.genero = "Selecione uma opção.";
   return errs;
 }
 
 export default function PurchaseModal({ open, onClose }) {
-  const [form, setForm] = useState({ nome: "", nome_camisa: "", telefone: "", email: "", tamanho: "" });
+  const [form, setForm] = useState({ nome: "", nome_camisa: "", genero: "", telefone: "", email: "", tamanho: "" });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -44,7 +46,7 @@ export default function PurchaseModal({ open, onClose }) {
   // Reset ao (re)abrir
   useEffect(() => {
     if (open) {
-      setForm({ nome: "", nome_camisa: "", telefone: "", email: "", tamanho: "" });
+      setForm({ nome: "", nome_camisa: "", genero: "", telefone: "", email: "", tamanho: "" });
       setErrors({});
       setServerError("");
       setSuccess(false);
@@ -80,6 +82,7 @@ export default function PurchaseModal({ open, onClose }) {
         id: crypto.randomUUID(),
         nome: form.nome.trim(),
         nome_camisa: form.nome_camisa.trim() || null,
+        genero: form.genero,
         telefone: form.telefone,
         email: form.email.trim(),
         tamanho: form.tamanho,
@@ -241,6 +244,27 @@ export default function PurchaseModal({ open, onClose }) {
                       ))}
                     </div>
                     {errors.tamanho && <p className="mt-1 text-xs text-red-400">{errors.tamanho}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-dim/70 mb-1.5">Gênero</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {GENEROS.map((g) => (
+                        <button
+                          type="button"
+                          key={g}
+                          onClick={() => setField("genero", g)}
+                          className={`py-1.5 rounded-xl border text-sm font-medium transition-all ${
+                            form.genero === g
+                              ? "border-signal bg-signal/20 text-data"
+                              : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"
+                          }`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                    {errors.genero && <p className="mt-1 text-xs text-red-400">{errors.genero}</p>}
                   </div>
 
                   {serverError && (

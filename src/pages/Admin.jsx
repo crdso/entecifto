@@ -362,6 +362,7 @@ export default function Admin() {
                     <th className="px-4 py-3 font-medium">Telefone</th>
                     <th className="px-4 py-3 font-medium">E-mail</th>
                     <th className="px-4 py-3 font-medium">Tam.</th>
+                    <th className="px-4 py-3 font-medium">Gênero</th>
                     <th className="px-4 py-3 font-medium">Data</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Entrega</th>
@@ -376,6 +377,7 @@ export default function Admin() {
                       <td className="px-4 py-3 text-dim/80">{r.telefone}</td>
                       <td className="px-4 py-3 text-dim/80">{r.email}</td>
                       <td className="px-4 py-3 text-dim/80">{r.tamanho}</td>
+                      <td className="px-4 py-3 text-dim/80">{r.genero || "—"}</td>
                       <td className="px-4 py-3 text-dim/60">
                         {r.created_at ? moment(r.created_at).format("DD/MM/YYYY HH:mm") : "—"}
                       </td>

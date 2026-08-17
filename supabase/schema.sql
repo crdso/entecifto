@@ -12,6 +12,7 @@ create table if not exists public.inscricoes (
   telefone text not null,
   email text not null,
   tamanho text not null,
+  genero text, -- masculino/feminino (opcional, ajuda na entrega)
   status text not null default 'pending_payment',
   valor numeric not null default 60,
   payment_id text,
