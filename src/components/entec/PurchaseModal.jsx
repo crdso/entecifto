@@ -157,7 +157,7 @@ export default function PurchaseModal({ open, onClose }) {
             ) : (
               <>
                 <div className="pr-6">
-                  <span className="inline-block mb-2.5 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-lavender text-[10px] font-medium tracking-[0.18em] uppercase">
+                  <span className="inline-block mb-2.5 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-pulse text-[10px] font-medium tracking-[0.18em] uppercase">
                     Camisa Oficial
                   </span>
                   <h3 className="font-display font-bold text-xl sm:text-2xl text-data">
