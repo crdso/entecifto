@@ -8,19 +8,18 @@ const DAYS = [
   {
     label: "DIA 1",
     items: [
-      { time: "09:00", activity: "Credenciamento e abertura oficial do ENTEC 2026" },
-      { time: "10:30", activity: "Palestra: Inteligência Artificial e o futuro das profissões" },
-      { time: "14:00", activity: "Workshop hands-on: Desenvolvimento com tecnologias open-source" },
-      { time: "16:00", activity: "Mesa redonda: Inovação, pesquisa e empreendedorismo no IFTO" },
+      { time: "08:00", activity: "Credenciamento e abertura oficial do ENTEC 2026" },
+      { time: "08:30", activity: "Coffee Break" },
+      { time: "9:00", activity: "Palestra: Inteligência Artificial, tecnologia e sociedade" },
+      { time: "└—————", activity: "Sorteios, dinâmicas e atividades interativas entre as palestras" },
     ],
   },
   {
     label: "DIA 2",
     items: [
-      { time: "09:00", activity: "Palestra magna: Cibersegurança e privacidade na era digital" },
-      { time: "10:30", activity: "Minicurso: Prototipação rápida com IoT e automação" },
-      { time: "14:00", activity: "Hackathon ENTEC — maratona de desenvolvimento" },
-      { time: "16:00", activity: "Premiação e encerramento do evento" },
+      { time: "14:00", activity: "Apresentação dos stands e projetos" },
+      { time: "16:30", activity: "Premiação dos stands vencedores" },
+      { time: "17:00", activity: "Encerramento oficial do ENTEC 2026" },
     ],
   },
 ];

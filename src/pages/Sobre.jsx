@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import PageHeader from "@/components/entec/PageHeader";
-import ImagePlaceholder from "@/components/entec/ImagePlaceholder";
+import Header from "@/components/entec/Header";
+import Footer from "@/components/entec/Footer";
 
 // ============================================================
 //  CONTEÚDO EDITÁVEL DA PÁGINA SOBRE
@@ -9,43 +9,69 @@ import ImagePlaceholder from "@/components/entec/ImagePlaceholder";
 //  Substitua o texto provisório abaixo pela apresentação definitiva.
 // ============================================================
 const PARAGRAFOS_INICIAIS = [
-  "O ENTEC — Encontro de Tecnologia do Instituto Federal do Tocantins — é um espaço dedicado à troca de experiências, à apresentação de trabalhos e ao debate sobre os caminhos da tecnologia. Desde sua primeira edição, reúne estudantes, docentes, pesquisadores e profissionais em torno de temas que refletem as transformações do nosso tempo.",
-  "Ao longo dos anos, o evento cresceu e acompanhou as mudanças do setor, incorporando novos formatos, áreas de discussão e formas de participação. O que começou como um encontro modesto tornou-se uma referência para a comunidade acadêmica e tecnológica da região, mantendo viva a vocação de aproximar a academia das demandas reais da sociedade.",
+  "O ENTEC — Encontro Tecnológico — é um evento realizado pelos alunos do 3º ano do curso Técnico em Redes de Computadores integrado ao Ensino Médio do IFTO — Campus Araguatins. Há mais de cinco anos, o encontro faz parte da trajetória do curso, reunindo alunos, professores e convidados em uma programação voltada à tecnologia e aos conhecimentos desenvolvidos durante a formação.",
+  "A cada ano, o ENTEC ganha uma nova identidade. Temas, ambientação e atividades são renovados para criar uma experiência diferente para quem participa. Tecnologia, cultura e criatividade se encontram na programação, permitindo que assuntos estudados ao longo do curso sejam apresentados de uma forma mais dinâmica e próxima do público.",
 ];
 
 const PARAGRAFOS_FINAIS = [
-  "A ENTEC existe para aproximar quem produz conhecimento de quem deseja aprendê-lo e aplicá-lo. Palestras, minicursos, oficinas e mostras de trabalhos convivem em uma programação pensada para inspirar e conectar pessoas, abrindo espaço para conversas que ultrapassam os limites da sala de aula.",
-  "Mais do que um evento, a ENTEC é um convite a pensar o futuro. Cada edição deixa perguntas, ideias e parcerias que continuam a ecoar muito depois de seu encerramento, reforçando o compromisso do IFTO com a educação, a inovação e o desenvolvimento sustentável da região.",
-  "Este texto é provisório e será substituído pela apresentação definitiva do evento. Aqui você poderá contar, de forma contínua e fluida, a história da ENTEC, seus princípios, seus personagens e seus principais momentos.",
+  "O evento é também uma oportunidade para os próprios alunos colocarem em prática o que aprenderam. Da organização à realização das atividades, a turma participa diretamente da construção do ENTEC, assumindo responsabilidades e trabalhando em conjunto para transformar o planejamento feito durante o ano em um evento aberto à comunidade.",
+  "Ao longo de sua história, o ENTEC já recebeu palestras, minicursos, apresentações, jogos, concursos, sorteios e outras atividades. A programação muda a cada edição, acompanhando tanto as propostas da turma responsável quanto os novos assuntos e tendências que surgem no universo da tecnologia.",
+  "Mais do que apresentar conteúdos técnicos, o ENTEC representa um dos momentos que marcam a conclusão do curso de Redes de Computadores no Campus Araguatins. É quando conhecimento, criatividade e trabalho em equipe saem da sala de aula e ganham espaço para serem compartilhados com outras pessoas.",
 ];
 
 export default function Sobre() {
   return (
     <div className="min-h-screen text-data">
-      <PageHeader />
+      <Header />
 
       <motion.article
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className="max-w-2xl mx-auto px-6 pt-24 pb-28 space-y-6"
+        className="max-w-3xl mx-auto px-6 pt-24 pb-28"
       >
-        {PARAGRAFOS_INICIAIS.map((p, i) => (
-          <p key={i} className="text-lg leading-relaxed text-dim/80">
-            {p}
+        <header className="text-center mb-12">
+          <p className="text-xs sm:text-sm font-medium tracking-[0.3em] uppercase text-signal/80">
+            Encontro de Tecnologia · IFTO
           </p>
-        ))}
+          <h1
+            className="mt-3 font-tech font-extrabold text-4xl sm:text-6xl tracking-[0.04em] text-transparent bg-clip-text bg-gradient-to-r from-signal via-data to-signal bg-[length:200%_auto] animate-shimmer"
+            style={{
+              filter: "drop-shadow(0 0 24px rgba(58,1,138,0.4))",
+              animationDuration: "6s",
+            }}
+          >
+            SOBRE O ENTEC
+          </h1>
+          <div className="mt-6 mx-auto h-px w-24 bg-gradient-to-r from-transparent via-signal to-transparent" />
+        </header>
 
-        <ImagePlaceholder label="Imagem" className="my-10 h-56" />
+        <div className="space-y-6">
+          {PARAGRAFOS_INICIAIS.map((p, i) => (
+            <p key={i} className="text-lg leading-relaxed text-dim/80">
+              {p}
+            </p>
+          ))}
+        </div>
 
-        {PARAGRAFOS_FINAIS.map((p, i) => (
-          <p key={i} className="text-lg leading-relaxed text-dim/80">
-            {p}
-          </p>
-        ))}
+        <figure className="relative my-12 overflow-hidden rounded-2xl border border-signal/25 shadow-[0_0_40px_rgba(58,1,138,0.25)]">
+          <img
+            src="/images/banner.png"
+            alt="Banner ENTEC 2026"
+            className="w-full h-auto object-cover"
+          />
+        </figure>
 
-        <ImagePlaceholder label="Imagem" className="my-10 h-56" />
+        <div className="space-y-6">
+          {PARAGRAFOS_FINAIS.map((p, i) => (
+            <p key={i} className="text-lg leading-relaxed text-dim/80">
+              {p}
+            </p>
+          ))}
+        </div>
       </motion.article>
+
+      <Footer />
     </div>
   );
 }

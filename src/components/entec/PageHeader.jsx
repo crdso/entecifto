@@ -2,8 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-const IFTO_LOGO =
-  "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=200&q=80";
+const IFTO_LOGO = "/entec-logo.png";
 
 // Cabeçalho reutilizável para as páginas internas (logo + voltar ao início).
 export default function PageHeader() {

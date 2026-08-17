@@ -5,8 +5,8 @@ import { ArrowUp } from "lucide-react";
 
 const NAV = [
   { label: "Início", to: "/" },
-  { label: "A Camisa", href: "#camisa" },
-  { label: "Programação", href: "#cronograma" },
+  { label: "A Camisa", to: "/#camisa" },
+  { label: "Programação", to: "/#cronograma" },
 ];
 
 const EVENT = [
@@ -33,17 +33,11 @@ export default function Footer() {
               Navegação
             </h4>
             <ul className="space-y-2.5">
-              {NAV.map((l) =>
-                l.to ? (
-                  <li key={l.label}>
-                    <Link to={l.to} className={linkClass}>{l.label}</Link>
-                  </li>
-                ) : (
-                  <li key={l.label}>
-                    <a href={l.href} className={linkClass}>{l.label}</a>
-                  </li>
-                )
-              )}
+              {NAV.map((l) => (
+                <li key={l.label}>
+                  <Link to={l.to} className={linkClass}>{l.label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -63,7 +57,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-6 border-t border-signal/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-dim/40 text-xs text-center sm:text-left">
-            © 2026 ENTEC · Instituto Federal do Tocantins. Todos os direitos reservados.
+            © 2026 ENTEC · Instituto Federal do Tocantins / dev: cardoso
           </p>
           <a
             href="#"

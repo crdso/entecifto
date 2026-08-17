@@ -11,7 +11,7 @@ const SHIRT = {
   title: "Camisa Oficial",
   description:
     "A camisa oficial do ENTEC 2026 foi desenvolvida especialmente para o evento, unindo conforto, qualidade e um design moderno.",
-  material: "Algodão premium 100% (fio penteado)",
+  material: "Dryfit",
   sizes: "PP · P · M · G",
   price: "R$ 60,00",
   // Altere este link para WhatsApp, formulário, Mercado Pago ou outro destino

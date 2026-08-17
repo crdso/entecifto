@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const IFTO_LOGO = "/entec-logo.png";
 
 const NAV_ITEMS = [
+  { label: "Sobre", to: "/sobre" },
   { label: "Camisa", id: "camisa" },
   { label: "Cronograma", id: "cronograma" },
 ];
@@ -12,6 +14,7 @@ const NAV_ITEMS = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -22,7 +25,11 @@ export default function Header() {
 
   const go = (id) => {
     setOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    if (document.getElementById(id)) {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${id}`);
+    }
   };
 
   return (
@@ -51,14 +58,24 @@ export default function Header() {
         {/* Desktop nav */}
         <ul className="hidden md:flex items-center gap-10">
           {NAV_ITEMS.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => go(item.id)}
-                className="group relative text-data/80 hover:text-data text-sm font-medium uppercase tracking-[0.15em] transition-colors"
-              >
-                {item.label}
-                <span className="absolute left-1/2 -bottom-1.5 h-px w-0 -translate-x-1/2 bg-signal transition-all duration-300 group-hover:w-full" />
-              </button>
+            <li key={item.to ?? item.id}>
+              {item.to ? (
+                <Link
+                  to={item.to}
+                  className="group relative text-data/80 hover:text-data text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                >
+                  {item.label}
+                  <span className="absolute left-1/2 -bottom-1.5 h-px w-0 -translate-x-1/2 bg-signal transition-all duration-300 group-hover:w-full" />
+                </Link>
+              ) : (
+                <button
+                  onClick={() => go(item.id)}
+                  className="group relative text-data/80 hover:text-data text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                >
+                  {item.label}
+                  <span className="absolute left-1/2 -bottom-1.5 h-px w-0 -translate-x-1/2 bg-signal transition-all duration-300 group-hover:w-full" />
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -82,13 +99,23 @@ export default function Header() {
       >
         <ul className="px-5 py-4 flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
-            <li key={item.id}>
-              <button
-                onClick={() => go(item.id)}
-                className="w-full text-left py-3 text-data/80 hover:text-signal text-sm font-medium uppercase tracking-[0.15em] transition-colors"
-              >
-                {item.label}
-              </button>
+            <li key={item.to ?? item.id}>
+              {item.to ? (
+                <Link
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className="w-full text-left py-3 text-data/80 hover:text-signal text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  onClick={() => go(item.id)}
+                  className="w-full text-left py-3 text-data/80 hover:text-signal text-sm font-medium uppercase tracking-[0.15em] transition-colors"
+                >
+                  {item.label}
+                </button>
+              )}
             </li>
           ))}
         </ul>
