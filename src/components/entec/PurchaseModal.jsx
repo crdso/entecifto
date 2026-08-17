@@ -28,8 +28,8 @@ function validate(form) {
     errs.nome_camisa = "Use apenas letras, números, espaços, pontos e hífens.";
   const digits = String(form.telefone || "").replace(/\D/g, "");
   if (digits.length < 10 || digits.length > 11) errs.telefone = "Telefone inválido.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((form.email || "").trim()))
-    errs.email = "E-mail institucional inválido.";
+  if (!/^[^\s@]+@estudante\.ifto\.edu\.br$/i.test((form.email || "").trim()))
+    errs.email = "Use seu e-mail institucional (@estudante.ifto.edu.br).";
   if (!SIZES.includes(form.tamanho)) errs.tamanho = "Selecione um tamanho.";
   return errs;
 }
@@ -216,7 +216,7 @@ export default function PurchaseModal({ open, onClose }) {
                       className={inputClass}
                       value={form.email}
                       onChange={(e) => setField("email", e.target.value)}
-                      placeholder="voce@ifto.edu.br"
+                      placeholder="voce@estudante.ifto.edu.br"
                       inputMode="email"
                     />
                     {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
