@@ -61,7 +61,7 @@ export default function Schedule() {
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-signal/15 border border-signal/40 text-lavender font-display font-bold">
                   {di + 1}
                 </span>
-                <h3 className="font-display font-bold text-2xl sm:text-3xl text-pulse tracking-wide">
+                <h3 className="font-display font-bold text-2xl sm:text-3xl text-data tracking-wide">
                   {day.label}
                 </h3>
               </div>
