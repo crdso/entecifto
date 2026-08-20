@@ -27,7 +27,8 @@ const DISCOUNT_10_LOCAL_PARTS = [
 const DISCOUNT_5_LOCAL_PARTS = [
   "dallila.sousa", "pedro.oliveira28", "ana.macedo10", "thaylla.oliveira",
   "luiz.sousa16", "lorena.oliveira", "aguida.carvalho2", "maysa.viana",
-  "rihana.santos",
+  "rihana.santos", "abinadabe.santos", "dhebora.barreto", "jose.flach",
+  "wesllyane.silva", "ivanilson.silva2",
 ];
 const VALOR_DESCONTO_10 = "R$ 50,00";
 const VALOR_DESCONTO_5 = "R$ 55,00";
