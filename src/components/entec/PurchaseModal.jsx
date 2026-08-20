@@ -11,7 +11,8 @@ const VALOR = "R$ 60,00";
 const NOME_CAMISA_MAX = 20;
 
 // E-mails elegíveis ao desconto de estudante (parte local antes do "@").
-const DISCOUNT_LOCAL_PARTS = [
+// R$ 10 de desconto -> R$ 50
+const DISCOUNT_10_LOCAL_PARTS = [
   "abraao.lima2", "adrya.oliveira", "alexandre.fernandes2", "ana.rios2",
   "anna.lima5", "bianca.silva15", "brunno.oliveira4", "caio.moraes",
   "cassio.costa2", "claudio.cardoso", "danhyel.gomes", "daniele.santos2",
@@ -22,7 +23,12 @@ const DISCOUNT_LOCAL_PARTS = [
   "maria.lopes18", "maria.conceicao12", "matheus.gomes4", "rafysa.menezes",
   "sabrina.silva9", "thaylon.carvalho", "yuri.silva6",
 ];
-const VALOR_DESCONTO = "R$ 50,00";
+// R$ 5 de desconto -> R$ 55
+const DISCOUNT_5_LOCAL_PARTS = [
+  "dallila.sousa", "pedro.oliveira28", "ana.macedo10", "thaylla.oliveira",
+];
+const VALOR_DESCONTO_10 = "R$ 50,00";
+const VALOR_DESCONTO_5 = "R$ 55,00";
 
 function maskPhone(v) {
   let d = String(v || "").replace(/\D/g, "").slice(0, 11);
@@ -77,8 +83,16 @@ export default function PurchaseModal({ open, onClose }) {
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const emailLocal = form.email.trim().toLowerCase().split("@")[0];
-  const hasDiscount = DISCOUNT_LOCAL_PARTS.includes(emailLocal);
-  const valor = hasDiscount ? 50 : 60;
+  const hasDiscount =
+    DISCOUNT_10_LOCAL_PARTS.includes(emailLocal) ||
+    DISCOUNT_5_LOCAL_PARTS.includes(emailLocal);
+  const valor = DISCOUNT_10_LOCAL_PARTS.includes(emailLocal)
+    ? 50
+    : DISCOUNT_5_LOCAL_PARTS.includes(emailLocal)
+      ? 55
+      : 60;
+  const priceText =
+    valor === 50 ? VALOR_DESCONTO_10 : valor === 55 ? VALOR_DESCONTO_5 : VALOR;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -291,17 +305,14 @@ export default function PurchaseModal({ open, onClose }) {
                     </div>
                   )}
 
+                  {hasDiscount && (
+                    <p className="rounded-full bg-emerald-500/15 border border-emerald-500/40 px-3 py-1 text-center text-[11px] font-medium text-emerald-300">
+                      Desconto para estudante
+                    </p>
+                  )}
+
                   <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-data font-semibold text-base">
-                        {hasDiscount ? VALOR_DESCONTO : VALOR}
-                      </span>
-                      {hasDiscount && (
-                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-0.5 text-[10px] font-medium text-emerald-300">
-                          Desconto de estudante
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-data font-semibold text-base">{priceText}</span>
                     <button
                       type="submit"
                       disabled={submitting}

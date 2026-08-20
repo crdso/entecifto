@@ -21,7 +21,7 @@ const corsHeaders = {
 // uma inscrição com status "pago" para o e-mail, o desconto é concedido (mesmo
 // que o pagamento fique pendente e a pessoa tente de novo). Após aprovação,
 // a próxima compra volta ao valor cheio.
-const DISCOUNT_LOCAL_PARTS = [
+const DISCOUNT_10_LOCAL_PARTS = [
   "abraao.lima2", "adrya.oliveira", "alexandre.fernandes2", "ana.rios2",
   "anna.lima5", "bianca.silva15", "brunno.oliveira4", "caio.moraes",
   "cassio.costa2", "claudio.cardoso", "danhyel.gomes", "daniele.santos2",
@@ -32,8 +32,12 @@ const DISCOUNT_LOCAL_PARTS = [
   "maria.lopes18", "maria.conceicao12", "matheus.gomes4", "rafysa.menezes",
   "sabrina.silva9", "thaylon.carvalho", "yuri.silva6",
 ];
+const DISCOUNT_5_LOCAL_PARTS = [
+  "dallila.sousa", "pedro.oliveira28", "ana.macedo10", "thaylla.oliveira",
+];
 const FULL_PRICE = 60;
-const DISCOUNT_PRICE = 50;
+const PRICE_DISCOUNT_10 = 50;
+const PRICE_DISCOUNT_5 = 55;
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -78,7 +82,11 @@ Deno.serve(async (req) => {
     const emailLocal = storedEmail.toLowerCase().split("@")[0];
     let valor = Number(inscricao.valor) || FULL_PRICE;
 
-    if (DISCOUNT_LOCAL_PARTS.includes(emailLocal)) {
+    let discount = 0; // 0 = sem desconto, 10 = R$ 10, 5 = R$ 5
+    if (DISCOUNT_10_LOCAL_PARTS.includes(emailLocal)) discount = 10;
+    else if (DISCOUNT_5_LOCAL_PARTS.includes(emailLocal)) discount = 5;
+
+    if (discount > 0) {
       const { data: alreadyPaid } = await supabase
         .from("inscricoes")
         .select("id")
@@ -86,7 +94,7 @@ Deno.serve(async (req) => {
         .eq("status", "pago")
         .limit(1);
       if (!alreadyPaid || alreadyPaid.length === 0) {
-        valor = DISCOUNT_PRICE;
+        valor = discount === 10 ? PRICE_DISCOUNT_10 : PRICE_DISCOUNT_5;
       }
     }
 
