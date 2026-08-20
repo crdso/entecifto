@@ -9,12 +9,14 @@ import PaymentReturn from '@/components/entec/PaymentReturn';
 import Home from './pages/Home';
 import Sobre from './pages/Sobre';
 import Admin from './pages/Admin';
+import VisitTracker from './components/VisitTracker';
 
 function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
+        <VisitTracker />
         <AnimatedBackground />
         <PaymentReturn />
         <Routes>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,10 @@ export default function Admin() {
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [adminTab, setAdminTab] = useState("inscricoes");
+  const [visitas, setVisitas] = useState([]);
+  const [visitasLoading, setVisitasLoading] = useState(false);
+  const [visitasError, setVisitasError] = useState("");
 
   const isAllowed = (user) => !ADMIN_EMAIL || (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
 
@@ -105,15 +109,51 @@ export default function Admin() {
     }
   };
 
+  const loadVisitas = async () => {
+    if (!session?.access_token) return;
+    setVisitasLoading(true);
+    setVisitasError("");
+    try {
+      const data = await selectRows("visitas", "order=created_at.desc&limit=200", session.access_token);
+      setVisitas(data || []);
+    } catch (e) {
+      const msg = e.message || "";
+      if (msg.includes("visitas") || msg.includes("42P01") || msg.includes("404")) {
+        setVisitasError("Tabela visitas ainda não criada. Rode o schema.sql no SQL Editor do Supabase.");
+      } else {
+        setVisitasError(msg || "Falha ao carregar visitas.");
+      }
+      setVisitas([]);
+    } finally {
+      setVisitasLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) {
       load();
+      loadVisitas();
     } else {
       setRows([]);
+      setVisitas([]);
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  // Realtime para visitas quando a aba estiver aberta
+  useEffect(() => {
+    if (!session || !supabase || adminTab !== "visitas") return;
+    const channel = supabase
+      .channel("visitas-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitas" }, (payload) => {
+        setVisitas((prev) => [payload.new, ...prev].slice(0, 200));
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, adminTab]);
 
   const indicators = useMemo(() => {
     const total = rows.length;
@@ -129,6 +169,18 @@ export default function Admin() {
       arrecadado: arrecadado.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
     };
   }, [rows]);
+
+  const visitasStats = useMemo(() => {
+    const now = Date.now();
+    const hoje = visitas.filter((v) => {
+      const d = new Date(v.created_at);
+      const today = new Date();
+      return d.toDateString() === today.toDateString();
+    }).length;
+    const online = visitas.filter((v) => now - new Date(v.created_at).getTime() < 5 * 60 * 1000).length;
+    const unicos = new Set(visitas.map((v) => v.ip).filter(Boolean)).size;
+    return { total: visitas.length, hoje, online, unicos };
+  }, [visitas]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -293,8 +345,27 @@ export default function Admin() {
           </Button>
         </div>
 
-        {/* Indicadores */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Abas */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setAdminTab("inscricoes")}
+            className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${adminTab === "inscricoes" ? "border-signal bg-signal/20 text-data" : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"}`}
+          >
+            Inscrições
+          </button>
+          <button
+            onClick={() => { setAdminTab("visitas"); loadVisitas(); }}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${adminTab === "visitas" ? "border-signal bg-signal/20 text-data" : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"}`}
+          >
+            <Eye className="h-4 w-4" />
+            Acessos {visitasStats.online > 0 && <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />}
+          </button>
+        </div>
+
+        {adminTab === "inscricoes" ? (
+          <>
+            {/* Indicadores */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {cards.map((c) => (
             <div
               key={c.label}
@@ -451,9 +522,105 @@ export default function Admin() {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
+            )}
+          </div>
+          </>
+        ) : (
+          <>
+            {/* Visitas - estatísticas */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium flex items-center gap-1.5">
+                  <Globe className="h-3 w-3" /> Total de acessos
+                </div>
+                <div className="mt-1 text-2xl font-semibold text-data">{visitasStats.total}</div>
+              </div>
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium">Hoje</div>
+                <div className="mt-1 text-2xl font-semibold text-data">{visitasStats.hoje}</div>
+              </div>
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium flex items-center gap-1.5">
+                  <Activity className="h-3 w-3" /> Online (5 min)
+                </div>
+                <div className="mt-1 text-2xl font-semibold text-data flex items-center gap-2">
+                  {visitasStats.online}
+                  {visitasStats.online > 0 && <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium flex items-center gap-1.5">
+                  <Users className="h-3 w-3" /> IPs únicos
+                </div>
+                <div className="mt-1 text-2xl font-semibold text-data">{visitasStats.unicos}</div>
+              </div>
+            </div>
+
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={loadVisitas}
+                disabled={visitasLoading}
+                className="inline-flex items-center gap-1.5 text-xs text-dim/70 hover:text-data disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${visitasLoading ? "animate-spin" : ""}`} />
+                Atualizar
+              </button>
+            </div>
+
+            {visitasError && (
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                {visitasError}
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-signal/20 bg-void/40 overflow-hidden">
+              {visitasLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-6 w-6 animate-spin text-lavender" />
+                </div>
+              ) : visitas.length === 0 ? (
+                <div className="py-20 text-center text-dim/50 text-sm">
+                  Nenhum acesso registrado ainda.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[11px] uppercase tracking-[0.14em] text-lavender/70 border-b border-signal/15">
+                        <th className="px-4 py-3 font-medium">Horário</th>
+                        <th className="px-4 py-3 font-medium">Página</th>
+                        <th className="px-4 py-3 font-medium">IP</th>
+                        <th className="px-4 py-3 font-medium">Origem</th>
+                        <th className="px-4 py-3 font-medium">Navegador</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visitas.map((v) => (
+                        <tr key={v.id} className="border-b border-signal/10 hover:bg-signal/5">
+                          <td className="px-4 py-3 text-dim/60 whitespace-nowrap">
+                            {v.created_at ? moment(v.created_at).format("DD/MM HH:mm:ss") : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-data font-mono text-xs">{v.path || "/"}</td>
+                          <td className="px-4 py-3 text-dim/80 font-mono text-xs">{v.ip || "—"}</td>
+                          <td className="px-4 py-3 text-dim/60 text-xs max-w-[180px] truncate" title={v.referrer || ""}>
+                            {v.referrer ? new URL(v.referrer).hostname : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-dim/50 text-xs max-w-[220px] truncate" title={v.user_agent || ""}>
+                            {v.user_agent || "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-[11px] text-dim/40 text-center">
+              Atualiza em tempo real via Supabase Realtime. Mostrando até 200 acessos mais recentes.
+            </p>
+          </>
+        )}
       </div>
-    </div>
-  );
-}
+      </div>
+    );
+  }
