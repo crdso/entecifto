@@ -15,6 +15,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ===== Desconto de estudante =====
+// E-mails elegíveis (parte local antes do "@"). O desconto só vale UMA vez
+// por e-mail e apenas DEPOIS de um pagamento ser aprovado: enquanto não existir
+// uma inscrição com status "pago" para o e-mail, o desconto é concedido (mesmo
+// que o pagamento fique pendente e a pessoa tente de novo). Após aprovação,
+// a próxima compra volta ao valor cheio.
+const DISCOUNT_LOCAL_PARTS = [
+  "abraao.lima2", "adrya.oliveira", "alexandre.fernandes2", "ana.rios2",
+  "anna.lima5", "bianca.silva15", "brunno.oliveira4", "caio.moraes",
+  "cassio.costa2", "claudio.cardoso", "danhyel.gomes", "daniele.santos2",
+  "davi.pereira5", "denner.pontes", "eduarda.padilha", "eliaby.veloso",
+  "ezequias.cardoso", "gabriel.sousa21", "gustavo.nascimento3", "hemilly.souza2",
+  "hiago.sousa3", "jair.cavalcante", "jhonata.silva6", "juliana.lima3",
+  "khalil.pellegrini", "laura.tundelo", "luis.santana", "luiz.fischer",
+  "maria.lopes18", "maria.conceicao12", "matheus.gomes4", "rafysa.menezes",
+  "sabrina.silva9", "thaylon.carvalho", "yuri.silva6",
+];
+const FULL_PRICE = 60;
+const DISCOUNT_PRICE = 50;
+
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -51,7 +71,24 @@ Deno.serve(async (req) => {
     }
 
     const phoneDigits = String(inscricao.telefone || "").replace(/\D/g, "");
-    const valor = Number(inscricao.valor || 60);
+
+    // Calcula o valor final: desconto só se o e-mail for elegível E ainda não
+    // houver pagamento aprovado ("pago") para esse e-mail.
+    const storedEmail = String(inscricao.email || "").trim();
+    const emailLocal = storedEmail.toLowerCase().split("@")[0];
+    let valor = Number(inscricao.valor) || FULL_PRICE;
+
+    if (DISCOUNT_LOCAL_PARTS.includes(emailLocal)) {
+      const { data: alreadyPaid } = await supabase
+        .from("inscricoes")
+        .select("id")
+        .ilike("email", storedEmail)
+        .eq("status", "pago")
+        .limit(1);
+      if (!alreadyPaid || alreadyPaid.length === 0) {
+        valor = DISCOUNT_PRICE;
+      }
+    }
 
     // O Mercado Pago exige back_urls.success quando usa auto_return, mas
     // rejeita URLs de localhost. Em teste local, sem auto_return funciona.
@@ -101,7 +138,7 @@ Deno.serve(async (req) => {
 
     await supabase
       .from("inscricoes")
-      .update({ payment_id: String(mpData.id), payment_status: "pending" })
+      .update({ payment_id: String(mpData.id), payment_status: "pending", valor })
       .eq("id", inscricao.id);
 
     return json({ checkoutUrl: mpData.init_point, preferenceId: mpData.id });

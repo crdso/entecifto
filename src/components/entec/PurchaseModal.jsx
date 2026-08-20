@@ -10,6 +10,20 @@ const GENEROS = ["Masculino", "Feminino"];
 const VALOR = "R$ 60,00";
 const NOME_CAMISA_MAX = 20;
 
+// E-mails elegíveis ao desconto de estudante (parte local antes do "@").
+const DISCOUNT_LOCAL_PARTS = [
+  "abraao.lima2", "adrya.oliveira", "alexandre.fernandes2", "ana.rios2",
+  "anna.lima5", "bianca.silva15", "brunno.oliveira4", "caio.moraes",
+  "cassio.costa2", "claudio.cardoso", "danhyel.gomes", "daniele.santos2",
+  "davi.pereira5", "denner.pontes", "eduarda.padilha", "eliaby.veloso",
+  "ezequias.cardoso", "gabriel.sousa21", "gustavo.nascimento3", "hemilly.souza2",
+  "hiago.sousa3", "jair.cavalcante", "jhonata.silva6", "juliana.lima3",
+  "khalil.pellegrini", "laura.tundelo", "luis.santana", "luiz.fischer",
+  "maria.lopes18", "maria.conceicao12", "matheus.gomes4", "rafysa.menezes",
+  "sabrina.silva9", "thaylon.carvalho", "yuri.silva6",
+];
+const VALOR_DESCONTO = "R$ 50,00";
+
 function maskPhone(v) {
   let d = String(v || "").replace(/\D/g, "").slice(0, 11);
   if (d.length > 10) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
@@ -62,6 +76,10 @@ export default function PurchaseModal({ open, onClose }) {
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const emailLocal = form.email.trim().toLowerCase().split("@")[0];
+  const hasDiscount = DISCOUNT_LOCAL_PARTS.includes(emailLocal);
+  const valor = hasDiscount ? 50 : 60;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setServerError("");
@@ -87,7 +105,7 @@ export default function PurchaseModal({ open, onClose }) {
         email: form.email.trim(),
         tamanho: form.tamanho,
         status: "pending_payment",
-        valor: 60,
+        valor,
         payment_id: null,
         payment_status: null,
         payment_method: null,
@@ -274,7 +292,16 @@ export default function PurchaseModal({ open, onClose }) {
                   )}
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-data font-semibold text-base">{VALOR}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-data font-semibold text-base">
+                        {hasDiscount ? VALOR_DESCONTO : VALOR}
+                      </span>
+                      {hasDiscount && (
+                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                          Desconto de estudante
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="submit"
                       disabled={submitting}
