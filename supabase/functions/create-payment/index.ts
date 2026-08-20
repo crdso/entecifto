@@ -34,6 +34,8 @@ const DISCOUNT_10_LOCAL_PARTS = [
 ];
 const DISCOUNT_5_LOCAL_PARTS = [
   "dallila.sousa", "pedro.oliveira28", "ana.macedo10", "thaylla.oliveira",
+  "luiz.sousa16", "lorena.oliveira", "aguida.carvalho2", "maysa.viana",
+  "rihana.santos",
 ];
 const FULL_PRICE = 60;
 const PRICE_DISCOUNT_10 = 50;

@@ -26,6 +26,8 @@ const DISCOUNT_10_LOCAL_PARTS = [
 // R$ 5 de desconto -> R$ 55
 const DISCOUNT_5_LOCAL_PARTS = [
   "dallila.sousa", "pedro.oliveira28", "ana.macedo10", "thaylla.oliveira",
+  "luiz.sousa16", "lorena.oliveira", "aguida.carvalho2", "maysa.viana",
+  "rihana.santos",
 ];
 const VALOR_DESCONTO_10 = "R$ 50,00";
 const VALOR_DESCONTO_5 = "R$ 55,00";
