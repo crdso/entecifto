@@ -6,6 +6,7 @@ import { createPayment } from "@/lib/createPayment";
 import { SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 const SIZES = ["PP", "P", "M", "G"];
+const SIZES_BABY_LOOK = ["Baby Look PP", "Baby Look P", "Baby Look M", "Baby Look G"];
 const GENEROS = ["Masculino", "Feminino"];
 const VALOR = "R$ 60,00";
 const NOME_CAMISA_MAX = 20;
@@ -54,7 +55,8 @@ function validate(form) {
   if (digits.length < 10 || digits.length > 11) errs.telefone = "Telefone inválido.";
   if (!/^[^\s@]+@estudante\.ifto\.edu\.br$/i.test((form.email || "").trim()))
     errs.email = "Use seu e-mail institucional (@estudante.ifto.edu.br).";
-  if (!SIZES.includes(form.tamanho)) errs.tamanho = "Selecione um tamanho.";
+  const tamanhosValidos = form.genero === "Feminino" ? [...SIZES, ...SIZES_BABY_LOOK] : SIZES;
+  if (!tamanhosValidos.includes(form.tamanho)) errs.tamanho = "Selecione um tamanho.";
   if (!GENEROS.includes(form.genero)) errs.genero = "Selecione uma opção.";
   return errs;
 }
@@ -261,27 +263,6 @@ export default function PurchaseModal({ open, onClose }) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-dim/70 mb-1.5">Tamanho</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {SIZES.map((s) => (
-                        <button
-                          type="button"
-                          key={s}
-                          onClick={() => setField("tamanho", s)}
-                          className={`py-2 rounded-xl border text-sm font-medium transition-all ${
-                            form.tamanho === s
-                              ? "border-signal bg-signal/20 text-data"
-                              : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"
-                          }`}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                    {errors.tamanho && <p className="mt-1 text-xs text-red-400">{errors.tamanho}</p>}
-                  </div>
-
-                  <div>
                     <label className="block text-xs font-medium text-dim/70 mb-1.5">Gênero</label>
                     <div className="grid grid-cols-2 gap-2">
                       {GENEROS.map((g) => (
@@ -300,6 +281,32 @@ export default function PurchaseModal({ open, onClose }) {
                       ))}
                     </div>
                     {errors.genero && <p className="mt-1 text-xs text-red-400">{errors.genero}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-dim/70 mb-1.5">
+                      Tamanho
+                      {form.genero === "Feminino" && (
+                        <span className="text-dim/50 font-normal"> — Baby Look disponível</span>
+                      )}
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {(form.genero === "Feminino" ? [...SIZES, ...SIZES_BABY_LOOK] : SIZES).map((s) => (
+                        <button
+                          type="button"
+                          key={s}
+                          onClick={() => setField("tamanho", s)}
+                          className={`py-2 rounded-xl border text-xs sm:text-sm font-medium transition-all leading-tight ${
+                            form.tamanho === s
+                              ? "border-signal bg-signal/20 text-data"
+                              : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"
+                          }`}
+                        >
+                          {s.includes("Baby Look") ? s.replace("Baby Look ", "BL ") : s}
+                        </button>
+                      ))}
+                    </div>
+                    {errors.tamanho && <p className="mt-1 text-xs text-red-400">{errors.tamanho}</p>}
                   </div>
 
                   {serverError && (
