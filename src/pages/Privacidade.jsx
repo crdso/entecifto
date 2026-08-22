@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Shield, FileText, Lock, Database, CreditCard, Eye } from "lucide-react";
+import { Shield } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 
@@ -10,7 +10,6 @@ export default function Privacidade() {
     <div className="min-h-screen text-data">
       <Header />
       <div className="max-w-3xl mx-auto px-6 pt-28 pb-16">
-        {/* Cabeçalho */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -19,250 +18,130 @@ export default function Privacidade() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-signal/10 border border-signal/20 text-lavender text-[11px] font-medium tracking-[0.16em] uppercase">
             <Shield className="h-3.5 w-3.5" />
-            Privacidade e proteção de dados
+            Privacidade
           </div>
           <h1 className="mt-4 font-display font-bold text-3xl sm:text-4xl text-data leading-tight">
             Política de Privacidade
           </h1>
-          <p className="mt-2 font-medium text-lavender">ENTEC 2026 — IFTO Campus Araguatins</p>
-          <p className="mt-3 text-xs text-dim/40">
-            Última atualização: 22 de agosto de 2026 • Versão 1.0
+          <p className="mt-2 text-xs text-dim/40">Última atualização: agosto de 2026</p>
+          <p className="mt-4 text-sm text-dim/70 leading-relaxed max-w-2xl mx-auto">
+            Esta Política de Privacidade explica de forma simples como o site oficial do <strong className="text-data">ENTEC 2026</strong> trata as informações necessárias para seu funcionamento, para a aquisição da camisa oficial do evento e para o acompanhamento de acessos ao site.
           </p>
         </motion.div>
 
-        {/* Resumo executivo */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.6 }}
-          className="mt-8 rounded-2xl border border-signal/15 bg-gradient-to-b from-energy/20 to-void/40 backdrop-blur-md p-5 sm:p-6"
-        >
-          <h2 className="text-xs font-semibold tracking-[0.14em] uppercase text-lavender flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Resumo
-          </h2>
-          <p className="mt-2 text-sm text-dim/70 leading-relaxed">
-            O site do ENTEC 2026 coleta apenas dados estritamente necessários para vender e entregar a camisa oficial,
-            processar o pagamento e medir acessos de forma anonimizada. Não vendemos dados, não exibimos anúncios e não
-            utilizamos rastreadores de terceiros. O tratamento observa a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
-          </p>
-          <div className="mt-4 grid sm:grid-cols-3 gap-3 text-xs">
-            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
-              <div className="font-medium text-data flex items-center gap-1.5">
-                <Database className="h-3.5 w-3.5 text-lavender" />
-                Onde ficam
-              </div>
-              <div className="mt-1 text-dim/60 leading-relaxed">Supabase (São Paulo) e Mercado Pago para pagamentos.</div>
-            </div>
-            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
-              <div className="font-medium text-data flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-lavender" />
-                Segurança
-              </div>
-              <div className="mt-1 text-dim/60 leading-relaxed">Preço definido no servidor, HTTPS e acesso restrito ao painel.</div>
-            </div>
-            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
-              <div className="font-medium text-data flex items-center gap-1.5">
-                <Eye className="h-3.5 w-3.5 text-lavender" />
-                Controle
-              </div>
-              <div className="mt-1 text-dim/60 leading-relaxed">Você pode solicitar acesso, correção ou exclusão.</div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Conteúdo */}
         <motion.article
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.6 }}
-          className="mt-10 space-y-8 text-sm leading-relaxed"
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="mt-10 space-y-8 text-sm leading-relaxed text-dim/75"
         >
           <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                1
-              </span>
-              Controlador e contato
-            </h2>
-            <p className="mt-3 text-dim/75">
-              Controladora: Comissão Organizadora do ENTEC 2026 — Curso Técnico em Redes de Computadores, IFTO Campus
-              Araguatins. Encarregado (DPO): contato via secretaria do campus ou e-mail institucional divulgado nos canais
-              oficiais do IFTO. Para exercer direitos sobre seus dados, utilize os mesmos canais.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                2
-              </span>
-              Dados tratados
-            </h2>
-            <div className="mt-3 overflow-x-auto rounded-xl border border-signal/10">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-white/[0.04] text-left text-[11px] uppercase tracking-[0.12em] text-lavender/70">
-                    <th className="px-4 py-2.5 font-medium">Categoria</th>
-                    <th className="px-4 py-2.5 font-medium">Dados</th>
-                    <th className="px-4 py-2.5 font-medium">Finalidade</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 text-dim/75">
-                  <tr>
-                    <td className="px-4 py-3 font-medium text-data whitespace-nowrap">Compra da camisa</td>
-                    <td className="px-4 py-3">Nome completo, nome na camisa (opcional), telefone, e-mail institucional, tamanho (PP–G, Baby Look), gênero, valor, status</td>
-                    <td className="px-4 py-3">Produção, separação e entrega; controle no painel administrativo</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium text-data">Pagamento</td>
-                    <td className="px-4 py-3">Nome, e-mail, telefone e valor calculados no servidor; ID de preferência e status retornados pelo Mercado Pago</td>
-                    <td className="px-4 py-3">Criar checkout, confirmar pagamento via webhook e atualizar status para “pago”</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium text-data">Acesso técnico</td>
-                    <td className="px-4 py-3">Página (path), IP, user-agent, referrer; carimbo de data/hora</td>
-                    <td className="px-4 py-3">Métricas de acesso (total/hoje/online/IPs únicos) e segurança; dedup de 5 min e exclusão de bots/admin</td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium text-data">Administrativo</td>
-                    <td className="px-4 py-3">E-mail e senha do administrador (Supabase Auth)</td>
-                    <td className="px-4 py-3">Autenticar acesso ao painel /admin</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-2 text-xs text-dim/50">
-              Não coletamos localização precisa, documentos, dados biométricos ou cookies de publicidade.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                3
-              </span>
-              Bases legais
-            </h2>
-            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
-              <li>
-                <strong className="text-data">Execução de contrato</strong> (art. 7º, V, LGPD) — compra e entrega da camisa.
-              </li>
-              <li>
-                <strong className="text-data">Legítimo interesse</strong> (art. 7º, IX) — métricas de acesso e proteção contra fraude, com impacto mínimo à privacidade.
-              </li>
-              <li>
-                <strong className="text-data">Cumprimento de obrigação legal</strong> (art. 7º, II) — quando aplicável à guarda fiscal/contábil.
-              </li>
+            <h2 className="font-display font-semibold text-data text-[15px]">1. Dados fornecidos na compra da camisa</h2>
+            <p className="mt-2">Ao solicitar a camisa oficial do ENTEC 2026, poderão ser solicitados:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>nome completo;</li>
+              <li>nome a ser colocado na camisa, quando informado;</li>
+              <li>telefone;</li>
+              <li>e-mail institucional;</li>
+              <li>gênero/modelagem escolhida;</li>
+              <li>tamanho da camisa.</li>
             </ul>
-          </section>
-
-          <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                4
-              </span>
-              Compartilhamento e operadores
-            </h2>
-            <div className="mt-3 grid sm:grid-cols-3 gap-3">
-              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
-                <div className="text-xs font-semibold text-data flex items-center gap-1.5">
-                  <Database className="h-3.5 w-3.5 text-lavender" />
-                  Supabase
-                </div>
-                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Banco (Postgres) e Auth em São Paulo. Tabelas <code>inscricoes</code> e <code>visitas</code> com RLS; apenas autenticados leem o painel.</p>
-              </div>
-              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
-                <div className="text-xs font-semibold text-data flex items-center gap-1.5">
-                  <CreditCard className="h-3.5 w-3.5 text-lavender" />
-                  Mercado Pago
-                </div>
-                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Recebe nome, e-mail, telefone e valor para gerar o checkout. Pagamento processado no ambiente deles.</p>
-              </div>
-              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
-                <div className="text-xs font-semibold text-data">Netlify</div>
-                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Hospedagem estática; logs de CDN podem existir no provedor.</p>
-              </div>
-            </div>
-            <p className="mt-3 text-dim/75">Não comercializamos dados. Compartilhamento ocorre apenas para viabilizar o funcionamento acima.</p>
-          </section>
-
-          <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                5
-              </span>
-              Cookies e tecnologias similares
-            </h2>
-            <p className="text-dim/75">
-              O site não utiliza cookies de publicidade ou rastreadores de terceiros. São usados apenas recursos técnicos
-              essenciais: armazenamento local do Supabase Auth para manter a sessão do administrador e, eventualmente,
-              preferências de interface. Você pode limpar o armazenamento do navegador a qualquer momento.
+            <p className="mt-3">
+              Essas informações são utilizadas exclusivamente para registrar o pedido, identificar o comprador, aplicar as regras de preço ou desconto quando cabíveis, organizar a produção e a entrega das camisas e prestar suporte relacionado à compra.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                6
-              </span>
-              Segurança
-            </h2>
-            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
-              <li>Preço da camisa definido exclusivamente no backend (<code>create-payment</code>); valor enviado pelo navegador é desconsiderado.</li>
-              <li>Validação de e-mail institucional, tamanho, gênero e nome da camisa no frontend e no servidor.</li>
-              <li>Links de pagamento expiram em 1 hora; inscrições pendentes são removidas automaticamente após 1 hora (cron horário).</li>
-              <li>Painel administrativo protegido por autenticação e políticas RLS (leitura/edição/exclusão apenas para autenticados).</li>
-              <li>Comunicação com Supabase e Mercado Pago via HTTPS.</li>
+            <h2 className="font-display font-semibold text-data text-[15px]">2. Pagamentos</h2>
+            <p className="mt-2">
+              Os pagamentos são processados por meio do <strong className="text-data">Mercado Pago</strong>.
+            </p>
+            <p className="mt-2">
+              Para gerar o checkout, algumas informações necessárias à identificação da compra, como nome, e-mail e telefone, são encaminhadas ao Mercado Pago.
+            </p>
+            <p className="mt-2">
+              Os dados utilizados diretamente para realizar o pagamento, como informações de cartão, Pix ou outros meios disponibilizados no checkout, são tratados no ambiente do Mercado Pago e não são armazenados pelo site do ENTEC.
+            </p>
+            <p className="mt-2">
+              O sistema mantém apenas informações necessárias ao acompanhamento do pedido, como identificador do pagamento, situação do pagamento, método utilizado e data de aprovação.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">3. Dados de acesso ao site</h2>
+            <p className="mt-2">Para acompanhar o funcionamento e a utilização do site, podem ser registrados automaticamente:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>endereço IP;</li>
+              <li>página acessada;</li>
+              <li>navegador e informações técnicas do dispositivo;</li>
+              <li>página ou site de origem do acesso, quando disponível;</li>
+              <li>data e horário do acesso.</li>
             </ul>
+            <p className="mt-3">
+              Esses registros são utilizados para gerar métricas de acesso, identificar problemas técnicos, evitar contagens duplicadas e auxiliar na segurança e administração do site.
+            </p>
+            <p className="mt-2">Não utilizamos essas informações para publicidade direcionada.</p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                7
-              </span>
-              Retenção
-            </h2>
-            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
-              <li>
-                <strong className="text-data">Inscrições pagas:</strong> mantidas enquanto necessárias para entrega, financeiro e cumprimento de obrigações legais/fiscais.
-              </li>
-              <li>
-                <strong className="text-data">Inscrições pendentes:</strong> expiram em 1 hora e são excluídas automaticamente; podem ser removidas manualmente no painel.
-              </li>
-              <li>
-                <strong className="text-data">Visitas:</strong> mantidas para estatísticas; plano gratuito comporta centenas de milhares de registros. Exclusão sob demanda via solicitação.
-              </li>
+            <h2 className="font-display font-semibold text-data text-[15px]">4. Armazenamento e serviços utilizados</h2>
+            <p className="mt-2">
+              Os dados relacionados aos pedidos e aos registros técnicos do site são armazenados utilizando a infraestrutura do <strong className="text-data">Supabase</strong>.
+            </p>
+            <p className="mt-2">
+              O <strong className="text-data">Mercado Pago</strong> é utilizado exclusivamente para processamento e confirmação dos pagamentos.
+            </p>
+            <p className="mt-2">Esses serviços possuem suas próprias políticas e práticas de privacidade e segurança.</p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">5. Compartilhamento de dados</h2>
+            <p className="mt-2">Os dados pessoais não são vendidos ou comercializados.</p>
+            <p className="mt-2">Eles poderão ser compartilhados apenas quando necessário para:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>processar o pagamento;</li>
+              <li>manter o funcionamento técnico do site;</li>
+              <li>organizar e entregar as camisas;</li>
+              <li>cumprir obrigações legais, quando aplicável.</li>
             </ul>
+            <p className="mt-3">O acesso administrativo às informações é destinado à organização responsável pelo ENTEC 2026.</p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                8
-              </span>
-              Seus direitos
-            </h2>
-            <p className="text-dim/75">
-              Nos termos da LGPD (arts. 18 e 20), você pode solicitar confirmação, acesso, correção, anonimização, bloqueio,
-              eliminação, portabilidade e informação sobre compartilhamento, além de revogar consentimento quando aplicável e
-              solicitar revisão de decisões automatizadas. Atenderemos em prazo legal, observados segredos comerciais e
-              obrigações legais. Para exercer, contate a organização pelos canais oficiais do IFTO Campus Araguatins.
+            <h2 className="font-display font-semibold text-data text-[15px]">6. Conservação dos dados</h2>
+            <p className="mt-2">
+              Os dados são mantidos somente pelo período necessário para as finalidades relacionadas ao evento, às compras, à entrega das camisas, à administração do site e ao cumprimento de eventuais obrigações aplicáveis.
+            </p>
+            <p className="mt-2">Pedidos com pagamento pendente ou não concluído poderão ser removidos após a expiração do processo de pagamento.</p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">7. Segurança</h2>
+            <p className="mt-2">São utilizadas medidas técnicas para limitar o acesso aos dados e proteger as informações armazenadas.</p>
+            <p className="mt-2">
+              Ainda assim, nenhum sistema conectado à internet pode garantir segurança absoluta, e são adotadas medidas compatíveis com a finalidade e o porte deste site.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
-                9
-              </span>
-              Atualizações
-            </h2>
-            <p className="text-dim/75">
-              Esta política pode ser atualizada para refletir mudanças técnicas ou legais. A data no topo indica a versão vigente.
-              Alterações relevantes serão divulgadas nos canais do evento.
+            <h2 className="font-display font-semibold text-data text-[15px]">8. Direitos do titular</h2>
+            <p className="mt-2">
+              Nos termos da Lei Geral de Proteção de Dados Pessoais — <strong className="text-data">LGPD (Lei nº 13.709/2018)</strong> — o titular poderá solicitar, quando aplicável:
             </p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>confirmação da existência de tratamento de seus dados;</li>
+              <li>acesso aos dados armazenados;</li>
+              <li>correção de informações incorretas;</li>
+              <li>exclusão ou anonimização de dados quando cabível;</li>
+              <li>esclarecimentos sobre a utilização de suas informações.</li>
+            </ul>
+            <p className="mt-3">Solicitações relacionadas à privacidade poderão ser feitas pelos canais oficiais de contato do ENTEC 2026.</p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">9. Alterações nesta política</h2>
+            <p className="mt-2">Esta Política de Privacidade poderá ser atualizada caso ocorram mudanças relevantes no funcionamento do site ou na forma como os dados são tratados.</p>
+            <p className="mt-2">A versão mais recente estará sempre disponível nesta página.</p>
           </section>
 
           <div className="pt-6 border-t border-signal/10 flex flex-col sm:flex-row gap-3">
