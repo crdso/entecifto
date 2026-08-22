@@ -1,10 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2 } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { selectRows, supabase, updateRow, deleteRow } from "@/lib/supabase";
+import jsPDF from "jspdf";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || "").trim().toLowerCase();
 
@@ -319,6 +328,87 @@ export default function Admin() {
     }
   };
 
+  const handleDownload = (tipo) => {
+    const list = filtered.length ? filtered : rows;
+    if (!list.length) {
+      setError("Nenhum dado para exportar.");
+      return;
+    }
+    const isResumido = tipo === "resumido";
+    const doc = new jsPDF();
+    const title = isResumido ? "ENTEC 2026 — Lista Resumida" : "ENTEC 2026 — Lista Completa";
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(title, 14, 18);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    const filtroTxt = filter === "todos" ? "Todos" : filter === "pago" ? "Pagos" : "Pendentes";
+    doc.text(
+      `Gerado em ${new Date().toLocaleString("pt-BR")} • ${list.length} pedidos • Filtro: ${filtroTxt}${search ? ` • Busca: "${search}"` : ""}`,
+      14,
+      24
+    );
+    if (!isResumido) {
+      const f = financeiro;
+      doc.text(
+        `Bruto ${f.bruto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} • Taxas ${f.taxas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} • Líquido ${f.liquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} • Saldo ${f.saldoConta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} • Rend. ${f.rendimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+        14,
+        30
+      );
+    }
+    let y = isResumido ? 32 : 36;
+    const pageH = doc.internal.pageSize.getHeight();
+    list.forEach((r, idx) => {
+      if (y > pageH - 22) {
+        doc.addPage();
+        y = 18;
+      }
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30);
+      doc.text(`${idx + 1}. ${r.nome}`, 14, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(60);
+      const lines = isResumido
+        ? [
+            `nome: ${r.nome}`,
+            `nome camisa: ${shirtName(r)}`,
+            `genero: ${r.genero || "—"}`,
+            `tamanho: ${r.tamanho}`,
+          ]
+        : [
+            `nome: ${r.nome}`,
+            `nome camisa: ${shirtName(r)}`,
+            `genero: ${r.genero || "—"}`,
+            `tamanho: ${r.tamanho}`,
+            `telefone: ${r.telefone}`,
+            `email: ${r.email}`,
+            `valor: ${Number(r.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} • pagamento: ${r.payment_method ? (r.payment_method === "pix" ? "Pix" : r.payment_method === "account_money" ? "Conta MP" : r.payment_method) : "—"} • status: ${STATUS_LABEL[r.status] || r.status} • liquido: ${r.status === "pago" ? getFeeInfo(r.valor, r.payment_method).liquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}`,
+            `data: ${r.created_at ? moment(r.created_at).format("DD/MM/YYYY HH:mm") : "—"}`,
+          ];
+      lines.forEach((l) => {
+        const split = doc.splitTextToSize(`- ${l}`, 182);
+        split.forEach((s) => {
+          if (y > pageH - 12) {
+            doc.addPage();
+            y = 14;
+          }
+          doc.text(s, 16, y);
+          y += 4.5;
+        });
+      });
+      y += 2;
+      doc.setDrawColor(220);
+      doc.line(14, y, 196, y);
+      y += 6;
+    });
+    const suffix = isResumido ? "resumido" : "completo";
+    doc.save(`entec2026-${suffix}-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-data">
@@ -395,10 +485,38 @@ export default function Admin() {
               Painel Administrativo
             </h1>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 border-signal/20 text-data">
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2 border-emerald-500/30 text-data hover:bg-emerald-500/10">
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 bg-void border-signal/20 text-data">
+                <DropdownMenuLabel>Exportar lista (PDF)</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-signal/15" />
+                <DropdownMenuItem
+                  onClick={() => handleDownload("completo")}
+                  className="gap-2 focus:bg-signal/10 focus:text-data cursor-pointer"
+                >
+                  <FileDown className="h-4 w-4" />
+                  PDF Completo (todos os dados)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDownload("resumido")}
+                  className="gap-2 focus:bg-signal/10 focus:text-data cursor-pointer"
+                >
+                  <FileDown className="h-4 w-4" />
+                  PDF Resumido — nome, camisa, gênero, tamanho
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 border-signal/20 text-data">
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
 
         {/* Abas */}
