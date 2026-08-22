@@ -86,7 +86,7 @@ export default function Privacidade() {
           <section>
             <h2 className="font-display font-semibold text-data text-[15px]">4. Armazenamento e serviços utilizados</h2>
             <p className="mt-2">
-              Os dados relacionados aos pedidos e aos registros técnicos do site são armazenados utilizando a infraestrutura do <strong className="text-data">Supabase</strong>.
+              Os dados relacionados aos pedidos e aos registros técnicos do site são armazenados em serviços de infraestrutura utilizados para o funcionamento e administração da plataforma.
             </p>
             <p className="mt-2">
               O <strong className="text-data">Mercado Pago</strong> é utilizado exclusivamente para processamento e confirmação dos pagamentos.
