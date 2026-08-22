@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2 } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { selectRows, supabase, updateRow } from "@/lib/supabase";
+import { selectRows, supabase, updateRow, deleteRow } from "@/lib/supabase";
 
 const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || "").trim().toLowerCase();
 
@@ -263,6 +263,22 @@ export default function Admin() {
     }
   };
 
+  const handleDelete = async (r) => {
+    if (!session) return;
+    const ok = window.confirm(`Deletar a inscrição de "${r.nome}" (${r.email})?\nEsta ação não pode ser desfeita.`);
+    if (!ok) return;
+    setUpdatingId(r.id);
+    setError("");
+    try {
+      await deleteRow("inscricoes", `id=eq.${r.id}`, session.access_token);
+      setRows((prev) => prev.filter((x) => x.id !== r.id));
+    } catch (e) {
+      setError(e.message || "Falha ao deletar.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-data">
@@ -491,7 +507,7 @@ export default function Admin() {
                             </button>
                           )}
                           {r.delivered && <span className="text-xs text-dim/40">—</span>}
-                          <div className="flex gap-1.5">
+                          <div className="flex flex-wrap gap-1.5">
                             <button
                               onClick={() => copyRow(r, "full")}
                               className="inline-flex items-center gap-1.5 rounded-full border border-pulse/30 bg-pulse/10 px-3 py-1.5 text-xs font-medium text-data transition-all hover:bg-pulse/20"
@@ -513,6 +529,15 @@ export default function Admin() {
                                 <Copy className="h-3.5 w-3.5" />
                               )}
                               {copiedId === `${r.id}:mini` ? "Copiado" : "Copiar 2"}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(r)}
+                              disabled={updatingId === r.id}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition-all hover:bg-red-500/20 disabled:opacity-50"
+                              title="Deletar inscrição"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Deletar
                             </button>
                           </div>
                         </div>

@@ -55,3 +55,10 @@ create policy "authenticated update inscricoes"
   to authenticated
   using (true)
   with check (true);
+
+drop policy if exists "authenticated delete inscricoes" on public.inscricoes;
+create policy "authenticated delete inscricoes"
+  on public.inscricoes
+  for delete
+  to authenticated
+  using (true);

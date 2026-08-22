@@ -58,6 +58,20 @@ export async function selectRows(table, qs = "", token) {
   return res.json();
 }
 
+// Deleta linhas que casam com `match` (ex.: "id=eq.xxx").
+export async function deleteRow(table, match, token) {
+  ensureConfigured();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${match}`, {
+    method: "DELETE",
+    headers: baseHeaders(false, token),
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Falha ao deletar (${res.status}). ${t}`);
+  }
+  return true;
+}
+
 // Atualiza linhas que casam com `match` (ex.: "id=eq.xxx").
 // token = access_token do usuário logado (para o admin). Omita para uso anônimo.
 export async function updateRow(table, match, patch, token) {

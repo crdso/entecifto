@@ -43,6 +43,23 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
+    // Dedup: mesmo IP + mesmo path nos últimos 5 minutos não conta de novo (evita reloads)
+    if (ip) {
+      const since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recent } = await supabase
+        .from("visitas")
+        .select("id")
+        .eq("ip", ip)
+        .eq("path", path)
+        .gte("created_at", since)
+        .limit(1);
+      if (recent && recent.length > 0) {
+        return new Response(JSON.stringify({ ok: true, dedup: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     await supabase.from("visitas").insert({
       path,
       ip,
