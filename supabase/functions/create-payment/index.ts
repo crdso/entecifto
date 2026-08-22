@@ -105,6 +105,10 @@ Deno.serve(async (req) => {
     // rejeita URLs de localhost. Em teste local, sem auto_return funciona.
     const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)/.test(siteUrl || "");
 
+    // Link expira em 1 hora (após isso o MP invalida o checkout)
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+
     const preference = {
       items: [
         {
@@ -131,6 +135,9 @@ Deno.serve(async (req) => {
         failure: `${siteUrl}/?payment=failure`,
       },
       auto_return: isLocalhost ? undefined : "approved",
+      expires: true,
+      expiration_date_from: now.toISOString(),
+      expiration_date_to: expiresAt.toISOString(),
     };
 
     const mpRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
