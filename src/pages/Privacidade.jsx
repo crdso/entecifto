@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { Shield, FileText, Lock, Database, CreditCard, Eye } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 
@@ -8,160 +9,259 @@ export default function Privacidade() {
   return (
     <div className="min-h-screen text-data">
       <Header />
-      <motion.article
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="max-w-3xl mx-auto px-6 pt-28 pb-16"
-      >
-        <div className="text-center mb-10">
-          <p className="text-xs tracking-[0.2em] uppercase text-lavender">Transparência</p>
-          <h1 className="mt-3 font-display font-bold text-3xl sm:text-4xl text-data">Política de Privacidade — ENTEC 2026</h1>
-          <p className="mt-2 text-xs text-dim/50">Última atualização: 22 de agosto de 2026</p>
-          <p className="mt-4 text-sm text-dim/70 leading-relaxed max-w-2xl mx-auto">
-            Esta política descreve, de forma direta, quais dados o site oficial do ENTEC 2026 coleta, para que são usados
-            e como são protegidos. Ela reflete o funcionamento real do código em produção.
+      <div className="max-w-3xl mx-auto px-6 pt-28 pb-16">
+        {/* Cabeçalho */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-signal/10 border border-signal/20 text-lavender text-[11px] font-medium tracking-[0.16em] uppercase">
+            <Shield className="h-3.5 w-3.5" />
+            Privacidade e proteção de dados
+          </div>
+          <h1 className="mt-4 font-display font-bold text-3xl sm:text-4xl text-data leading-tight">
+            Política de Privacidade
+          </h1>
+          <p className="mt-2 font-medium text-lavender">ENTEC 2026 — IFTO Campus Araguatins</p>
+          <p className="mt-3 text-xs text-dim/40">
+            Última atualização: 22 de agosto de 2026 • Versão 1.0
           </p>
-        </div>
+        </motion.div>
 
-        <div className="space-y-8 text-sm leading-relaxed text-dim/80">
+        {/* Resumo executivo */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="mt-8 rounded-2xl border border-signal/15 bg-gradient-to-b from-energy/20 to-void/40 backdrop-blur-md p-5 sm:p-6"
+        >
+          <h2 className="text-xs font-semibold tracking-[0.14em] uppercase text-lavender flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Resumo
+          </h2>
+          <p className="mt-2 text-sm text-dim/70 leading-relaxed">
+            O site do ENTEC 2026 coleta apenas dados estritamente necessários para vender e entregar a camisa oficial,
+            processar o pagamento e medir acessos de forma anonimizada. Não vendemos dados, não exibimos anúncios e não
+            utilizamos rastreadores de terceiros. O tratamento observa a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+          </p>
+          <div className="mt-4 grid sm:grid-cols-3 gap-3 text-xs">
+            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
+              <div className="font-medium text-data flex items-center gap-1.5">
+                <Database className="h-3.5 w-3.5 text-lavender" />
+                Onde ficam
+              </div>
+              <div className="mt-1 text-dim/60 leading-relaxed">Supabase (São Paulo) e Mercado Pago para pagamentos.</div>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
+              <div className="font-medium text-data flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-lavender" />
+                Segurança
+              </div>
+              <div className="mt-1 text-dim/60 leading-relaxed">Preço definido no servidor, HTTPS e acesso restrito ao painel.</div>
+            </div>
+            <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
+              <div className="font-medium text-data flex items-center gap-1.5">
+                <Eye className="h-3.5 w-3.5 text-lavender" />
+                Controle
+              </div>
+              <div className="mt-1 text-dim/60 leading-relaxed">Você pode solicitar acesso, correção ou exclusão.</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Conteúdo */}
+        <motion.article
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25, duration: 0.6 }}
+          className="mt-10 space-y-8 text-sm leading-relaxed"
+        >
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">1. Quem é o responsável</h2>
-            <p>
-              O site <strong className="text-data">entecifto</strong> é mantido pela comissão organizadora do ENTEC 2026,
-              evento do curso Técnico em Redes de Computadores do IFTO — Campus Araguatins. Para dúvidas sobre privacidade,
-              utilize os canais de contato divulgados pela organização do evento.
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                1
+              </span>
+              Controlador e contato
+            </h2>
+            <p className="mt-3 text-dim/75">
+              Controladora: Comissão Organizadora do ENTEC 2026 — Curso Técnico em Redes de Computadores, IFTO Campus
+              Araguatins. Encarregado (DPO): contato via secretaria do campus ou e-mail institucional divulgado nos canais
+              oficiais do IFTO. Para exercer direitos sobre seus dados, utilize os mesmos canais.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">2. Quais dados coletamos</h2>
-            <p className="mb-2">O site coleta apenas o necessário para funcionar:</p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                <strong className="text-data">Dados da compra da camisa</strong> — nome completo, nome para estampar na camisa
-                (opcional), telefone, e-mail institucional (@estudante.ifto.edu.br ou outro, conforme validação), tamanho
-                (PP/P/M/G e Baby Look), gênero (Masculino/Feminino), valor e status do pedido. Esses dados são informados
-                por você no modal “Adquira sua camisa”.
-              </li>
-              <li>
-                <strong className="text-data">Dados de pagamento</strong> — ao confirmar a compra, o site cria uma preferência no
-                Mercado Pago com nome, e-mail, telefone e valor calculado no servidor. O processamento do pagamento
-                (Pix, boleto, cartão) acontece no ambiente do Mercado Pago.
-              </li>
-              <li>
-                <strong className="text-data">Registros técnicos de acesso</strong> — a cada visita, a função <code className="px-1 py-0.5 rounded bg-white/5 border border-signal/15 text-xs">track-visit</code> registra:
-                página acessada (<code>path</code>), endereço IP, navegador (<code>user-agent</code>) e página de origem
-                (<code>referrer</code>). O IP é extraído de cabeçalhos de proxy (<code>x-nf-client-connection-ip</code>,{" "}
-                <code>cf-connecting-ip</code>, <code>x-forwarded-for</code>) e bots são descartados. Acessos do administrador
-                logado não são contabilizados e recargas no mesmo IP/página em até 5 minutos são deduplicadas.
-              </li>
-              <li>
-                <strong className="text-data">Acesso administrativo</strong> — e-mail e senha do administrador são gerenciados pelo
-                Supabase Auth (login do painel <code>/admin</code>).
-              </li>
-            </ul>
-            <p className="mt-2 text-dim/60 text-xs">
-              Não coletamos localização precisa, não usamos cookies de publicidade e não fazemos rastreamento de terceiros
-              além do necessário para hospedagem e pagamento.
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                2
+              </span>
+              Dados tratados
+            </h2>
+            <div className="mt-3 overflow-x-auto rounded-xl border border-signal/10">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-white/[0.04] text-left text-[11px] uppercase tracking-[0.12em] text-lavender/70">
+                    <th className="px-4 py-2.5 font-medium">Categoria</th>
+                    <th className="px-4 py-2.5 font-medium">Dados</th>
+                    <th className="px-4 py-2.5 font-medium">Finalidade</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-dim/75">
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-data whitespace-nowrap">Compra da camisa</td>
+                    <td className="px-4 py-3">Nome completo, nome na camisa (opcional), telefone, e-mail institucional, tamanho (PP–G, Baby Look), gênero, valor, status</td>
+                    <td className="px-4 py-3">Produção, separação e entrega; controle no painel administrativo</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-data">Pagamento</td>
+                    <td className="px-4 py-3">Nome, e-mail, telefone e valor calculados no servidor; ID de preferência e status retornados pelo Mercado Pago</td>
+                    <td className="px-4 py-3">Criar checkout, confirmar pagamento via webhook e atualizar status para “pago”</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-data">Acesso técnico</td>
+                    <td className="px-4 py-3">Página (path), IP, user-agent, referrer; carimbo de data/hora</td>
+                    <td className="px-4 py-3">Métricas de acesso (total/hoje/online/IPs únicos) e segurança; dedup de 5 min e exclusão de bots/admin</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 font-medium text-data">Administrativo</td>
+                    <td className="px-4 py-3">E-mail e senha do administrador (Supabase Auth)</td>
+                    <td className="px-4 py-3">Autenticar acesso ao painel /admin</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-2 text-xs text-dim/50">
+              Não coletamos localização precisa, documentos, dados biométricos ou cookies de publicidade.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">3. Para que usamos</h2>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Processar e entregar o pedido da camisa (produção, separação por tamanho/modelo e entrega).</li>
-              <li>Criar e confirmar o pagamento via Mercado Pago e atualizar o status para “pago” via webhook.</li>
-              <li>Exibir no painel administrativo a lista de pedidos, controle de entrega e financeiro (bruto, taxas, líquido).</li>
-              <li>Medir acessos (total, hoje, online, IPs únicos) e exibir no painel em tempo real, sem identificar pessoas.</li>
-              <li>Garantir segurança, prevenir fraudes e depurar erros (ex.: validar e-mail institucional, tamanho, preço no servidor).</li>
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                3
+              </span>
+              Bases legais
+            </h2>
+            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
+              <li>
+                <strong className="text-data">Execução de contrato</strong> (art. 7º, V, LGPD) — compra e entrega da camisa.
+              </li>
+              <li>
+                <strong className="text-data">Legítimo interesse</strong> (art. 7º, IX) — métricas de acesso e proteção contra fraude, com impacto mínimo à privacidade.
+              </li>
+              <li>
+                <strong className="text-data">Cumprimento de obrigação legal</strong> (art. 7º, II) — quando aplicável à guarda fiscal/contábil.
+              </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">4. Onde os dados ficam e com quem são compartilhados</h2>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>
-                <strong className="text-data">Supabase</strong> (banco de dados e autenticação, região São Paulo) — armazena inscrições
-                (<code>inscricoes</code>) e visitas (<code>visitas</code>). Acesso ao painel exige login e política RLS.
-              </li>
-              <li>
-                <strong className="text-data">Mercado Pago</strong> — recebe apenas os dados mínimos para criar a preferência de
-                pagamento (nome, e-mail, telefone, valor e referência externa). O pagamento em si é processado por eles.
-              </li>
-              <li>
-                <strong className="text-data">Netlify</strong> (hospedagem) — serve o site estático; logs técnicos de CDN podem existir
-                no provedor, fora do controle direto desta aplicação.
-              </li>
-            </ul>
-            <p className="mt-2">Não vendemos, alugamos ou compartilhamos seus dados com terceiros para marketing.</p>
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                4
+              </span>
+              Compartilhamento e operadores
+            </h2>
+            <div className="mt-3 grid sm:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
+                <div className="text-xs font-semibold text-data flex items-center gap-1.5">
+                  <Database className="h-3.5 w-3.5 text-lavender" />
+                  Supabase
+                </div>
+                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Banco (Postgres) e Auth em São Paulo. Tabelas <code>inscricoes</code> e <code>visitas</code> com RLS; apenas autenticados leem o painel.</p>
+              </div>
+              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
+                <div className="text-xs font-semibold text-data flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5 text-lavender" />
+                  Mercado Pago
+                </div>
+                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Recebe nome, e-mail, telefone e valor para gerar o checkout. Pagamento processado no ambiente deles.</p>
+              </div>
+              <div className="rounded-xl border border-signal/10 bg-white/[0.02] p-4">
+                <div className="text-xs font-semibold text-data">Netlify</div>
+                <p className="mt-1 text-xs text-dim/60 leading-relaxed">Hospedagem estática; logs de CDN podem existir no provedor.</p>
+              </div>
+            </div>
+            <p className="mt-3 text-dim/75">Não comercializamos dados. Compartilhamento ocorre apenas para viabilizar o funcionamento acima.</p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">5. Base legal (LGPD)</h2>
-            <p>
-              Tratamos dados com base na <strong className="text-data">execução de contrato</strong> (compra e entrega da camisa),
-              <strong className="text-data"> legítimo interesse</strong> (métricas de acesso e segurança) e{" "}
-              <strong className="text-data">cumprimento de obrigação</strong> quando aplicável. O titular pode solicitar
-              informações, correção ou exclusão, respeitados prazos legais e contratuais.
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                5
+              </span>
+              Cookies e tecnologias similares
+            </h2>
+            <p className="text-dim/75">
+              O site não utiliza cookies de publicidade ou rastreadores de terceiros. São usados apenas recursos técnicos
+              essenciais: armazenamento local do Supabase Auth para manter a sessão do administrador e, eventualmente,
+              preferências de interface. Você pode limpar o armazenamento do navegador a qualquer momento.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">6. Segurança</h2>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>
-                Preço da camisa é definido <strong className="text-data">exclusivamente no backend</strong> (
-                <code>create-payment</code>). Valor enviado pelo navegador é ignorado e recalculado (R$ 60 cheio, R$ 50/55 para
-                e-mails com desconto, uso único após pagamento aprovado, expiração em 1h).
-              </li>
-              <li>Validação de e-mail institucional, tamanho, gênero e nome da camisa no frontend e no backend.</li>
-              <li>Acesso ao painel protegido por e-mail/senha e RLS (apenas autenticados leem/atualizam/deletam).</li>
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                6
+              </span>
+              Segurança
+            </h2>
+            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
+              <li>Preço da camisa definido exclusivamente no backend (<code>create-payment</code>); valor enviado pelo navegador é desconsiderado.</li>
+              <li>Validação de e-mail institucional, tamanho, gênero e nome da camisa no frontend e no servidor.</li>
+              <li>Links de pagamento expiram em 1 hora; inscrições pendentes são removidas automaticamente após 1 hora (cron horário).</li>
+              <li>Painel administrativo protegido por autenticação e políticas RLS (leitura/edição/exclusão apenas para autenticados).</li>
               <li>Comunicação com Supabase e Mercado Pago via HTTPS.</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">7. Retenção</h2>
-            <ul className="list-disc pl-5 space-y-1">
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                7
+              </span>
+              Retenção
+            </h2>
+            <ul className="mt-3 list-disc pl-5 space-y-1 text-dim/75">
               <li>
-                <strong className="text-data">Inscrições</strong>: mantidas enquanto necessárias para entrega, prestação de contas e
-                financeiro do evento. Você pode pedir exclusão via contato da organização; pedidos pagos podem ser mantidos por
-                obrigação legal/fiscal.
+                <strong className="text-data">Inscrições pagas:</strong> mantidas enquanto necessárias para entrega, financeiro e cumprimento de obrigações legais/fiscais.
               </li>
               <li>
-                <strong className="text-data">Pendentes não pagos</strong>: expiram em 1h (link do Mercado Pago) e são removidos
-                automaticamente após 1h por rotina horária (<code>pg_cron</code>) ou manualmente no painel.
+                <strong className="text-data">Inscrições pendentes:</strong> expiram em 1 hora e são excluídas automaticamente; podem ser removidas manualmente no painel.
               </li>
               <li>
-                <strong className="text-data">Visitas</strong>: mantidas para estatísticas; o plano gratuito do Supabase comporta
-                centenas de milhares de linhas (500 MB). Não há limpeza automática configurada.
+                <strong className="text-data">Visitas:</strong> mantidas para estatísticas; plano gratuito comporta centenas de milhares de registros. Exclusão sob demanda via solicitação.
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">8. Seus direitos</h2>
-            <p>
-              Nos termos da LGPD, você pode solicitar confirmação de tratamento, acesso, correção, anonimização, exclusão ou
-              portabilidade dos seus dados, além de revogar consentimento quando aplicável. Para exercer seus direitos, entre
-              em contato pelos canais oficiais do ENTEC 2026/IFTO Campus Araguatins.
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                8
+              </span>
+              Seus direitos
+            </h2>
+            <p className="text-dim/75">
+              Nos termos da LGPD (arts. 18 e 20), você pode solicitar confirmação, acesso, correção, anonimização, bloqueio,
+              eliminação, portabilidade e informação sobre compartilhamento, além de revogar consentimento quando aplicável e
+              solicitar revisão de decisões automatizadas. Atenderemos em prazo legal, observados segredos comerciais e
+              obrigações legais. Para exercer, contate a organização pelos canais oficiais do IFTO Campus Araguatins.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">9. Contato</h2>
-            <p>
-              Dúvidas sobre esta política ou sobre seus dados: procure a comissão organizadora do ENTEC 2026 no IFTO — Campus
-              Araguatins ou utilize o e-mail institucional divulgado no site do campus.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-display font-semibold text-data text-base mb-2">10. Atualizações</h2>
-            <p>
-              Esta política pode ser atualizada para refletir mudanças no site. A data no topo indica a última revisão.
-              Alterações relevantes serão comunicadas nos canais do evento.
+            <h2 className="font-display font-semibold text-data flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-signal/15 border border-signal/20 text-lavender text-xs font-bold">
+                9
+              </span>
+              Atualizações
+            </h2>
+            <p className="text-dim/75">
+              Esta política pode ser atualizada para refletir mudanças técnicas ou legais. A data no topo indica a versão vigente.
+              Alterações relevantes serão divulgadas nos canais do evento.
             </p>
           </section>
 
@@ -173,8 +273,8 @@ export default function Privacidade() {
               Conheça o ENTEC
             </Link>
           </div>
-        </div>
-      </motion.article>
+        </motion.article>
+      </div>
       <Footer />
     </div>
   );
