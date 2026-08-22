@@ -72,7 +72,7 @@ export default function ShirtSection() {
             <div className="mt-10 flex justify-center lg:justify-start">
               <button
                 onClick={() => setModalOpen(true)}
-                className="group relative inline-flex items-center gap-3 px-9 py-4 rounded-full bg-signal text-data font-semibold text-base sm:text-lg shadow-[0_0_30px_rgba(58,1,138,0.4)] animate-pulse-glow transition-transform hover:scale-[1.03]"
+                className="group relative inline-flex items-center gap-3 px-9 py-4 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold text-base sm:text-lg shadow-[0_4px_20px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_24px_rgba(36,107,253,0.30)] hover:scale-[1.02] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
               >
                 Adquira a sua!
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

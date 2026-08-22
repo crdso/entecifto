@@ -69,7 +69,7 @@ export default function Hero() {
           {/* Principal — destaque */}
           <button
             onClick={() => document.getElementById("camisa")?.scrollIntoView({ behavior: "smooth" })}
-            className="w-full sm:w-auto px-9 py-4 rounded-full bg-signal text-data font-semibold text-sm tracking-[0.12em] uppercase shadow-[0_0_30px_rgba(58,1,138,0.45)] animate-pulse-glow hover:scale-[1.03] transition-transform"
+            className="w-full sm:w-auto px-9 py-4 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold text-sm tracking-[0.12em] uppercase shadow-[0_4px_20px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_24px_rgba(36,107,253,0.30)] hover:scale-[1.02] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
           >
             Adquira sua camisa
           </button>

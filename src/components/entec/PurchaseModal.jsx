@@ -186,7 +186,7 @@ export default function PurchaseModal({ open, onClose }) {
                 </p>
                 <button
                   onClick={onClose}
-                  className="mt-5 px-6 py-2.5 rounded-full bg-signal text-data font-semibold shadow-[0_0_24px_rgba(36,107,253,0.4)] transition-transform hover:scale-[1.03]"
+                  className="mt-5 px-6 py-2.5 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold shadow-[0_4px_16px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_20px_rgba(36,107,253,0.30)] hover:scale-[1.02] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
                 >
                   Concluir
                 </button>
@@ -326,7 +326,7 @@ export default function PurchaseModal({ open, onClose }) {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-signal text-data font-semibold shadow-[0_0_24px_rgba(36,107,253,0.4)] disabled:opacity-60 transition-transform hover:scale-[1.03]"
+                      className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold shadow-[0_4px_16px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_20px_rgba(36,107,253,0.30)] hover:scale-[1.02] disabled:opacity-60 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
                     >
                       {submitting ? (
                         <>
