@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { SUPABASE_URL, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 // Registra a visita via Edge Function track-visit (sem bloquear a navegação).
 // Usa supressão de duplicatas para StrictMode e navegação rápida.
@@ -26,7 +26,11 @@ export default function VisitTracker() {
     // fire-and-forget — não aguarda resposta e ignora erros
     fetch(`${SUPABASE_URL}/functions/v1/track-visit`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
       body: JSON.stringify(payload),
     }).catch(() => {});
 
