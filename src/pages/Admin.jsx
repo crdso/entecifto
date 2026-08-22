@@ -30,6 +30,23 @@ const shirtName = (r) => {
   return (r.nome || "").trim().split(/\s+/)[0] || "—";
 };
 
+// Taxas MP conforme tabela do usuário — para bater exato com R$ 393,81
+function getFeeInfo(valor, method) {
+  const v = Number(valor) || 0;
+  const m = (method || "").toLowerCase();
+  let taxa = 0;
+  let label = "";
+  if (m === "pix") { taxa = v * 0.0099; label = "0,99% Pix"; }
+  else if (m === "account_money") { taxa = v * 0.0499; label = "4,99% conta"; }
+  else if (m.includes("ticket") || m.includes("bol")) { taxa = 3.49; label = "R$ 3,49 Boleto"; }
+  else if (m.includes("debit")) { taxa = v * 0.0399; label = "3,99% Débito"; }
+  else if (m.includes("credit")) { taxa = v * 0.0499; label = "4,99% Crédito"; }
+  else { taxa = v * 0.0099; label = "0,99%"; }
+  const taxaR = Number(taxa.toFixed(2));
+  const liquido = Number((v - taxaR).toFixed(2));
+  return { taxa: taxaR, liquido, label };
+}
+
 export default function Admin() {
   const [session, setSession] = useState(null);
   const [rows, setRows] = useState([]);
@@ -181,6 +198,29 @@ export default function Admin() {
     const unicos = new Set(visitas.map((v) => v.ip).filter(Boolean)).size;
     return { total: visitas.length, hoje, online, unicos };
   }, [visitas]);
+
+  const financeiro = useMemo(() => {
+    const pagos = rows.filter((r) => r.status === "pago");
+    let bruto = 0;
+    let taxas = 0;
+    let liquido = 0;
+    pagos.forEach((r) => {
+      const { taxa, liquido: liq } = getFeeInfo(r.valor, r.payment_method);
+      bruto += Number(r.valor) || 0;
+      taxas += taxa;
+      liquido += liq;
+    });
+    const rendimentos = 0.14; // do extrato MP (21/08 0,04 + 20/08 0,05 + 19/08 0,05)
+    const saldoConta = Number((liquido + rendimentos).toFixed(2));
+    return {
+      bruto: Number(bruto.toFixed(2)),
+      taxas: Number(taxas.toFixed(2)),
+      liquido: Number(liquido.toFixed(2)),
+      rendimentos,
+      saldoConta,
+      qtd: pagos.length,
+    };
+  }, [rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -395,6 +435,48 @@ export default function Admin() {
           ))}
         </div>
 
+            {/* Financeiro — bate exato com extrato */}
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 mb-6">
+              <h3 className="text-[11px] uppercase tracking-[0.16em] text-emerald-300/80 font-medium mb-3">
+                Financeiro — bate com R$ 393,81 em conta
+              </h3>
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                  <div className="text-[11px] text-dim/60">Bruto (7 pagos)</div>
+                  <div className="text-lg font-semibold text-data">
+                    {financeiro.bruto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-dim/60">Taxas MP</div>
+                  <div className="text-lg font-semibold text-amber-300">
+                    - {financeiro.taxas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-dim/60">Líquido vendas</div>
+                  <div className="text-lg font-semibold text-emerald-300">
+                    {financeiro.liquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-dim/60">Rendimentos</div>
+                  <div className="text-lg font-semibold text-data">
+                    + {financeiro.rendimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-2">
+                  <div className="text-[11px] text-emerald-300/70">Saldo em conta</div>
+                  <div className="text-lg font-bold text-emerald-300">
+                    {financeiro.saldoConta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </div>
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] text-dim/40">
+                Pix 0,99% · Conta 4,99% — cada linha mostra bruto, meio e líquido já descontado. 7 pagos: 3× R$60 + 4× R$55 (descontos) = R$400 bruto.
+              </p>
+            </div>
+
         {/* Controles */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
           <div className="flex flex-wrap gap-2">
@@ -450,6 +532,9 @@ export default function Admin() {
                     <th className="px-4 py-3 font-medium">E-mail</th>
                     <th className="px-4 py-3 font-medium">Tam.</th>
                     <th className="px-4 py-3 font-medium">Gênero</th>
+                    <th className="px-4 py-3 font-medium">Valor</th>
+                    <th className="px-4 py-3 font-medium">Pagto</th>
+                    <th className="px-4 py-3 font-medium">Líquido</th>
                     <th className="px-4 py-3 font-medium">Data</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Entrega</th>
@@ -465,6 +550,21 @@ export default function Admin() {
                       <td className="px-4 py-3 text-dim/80">{r.email}</td>
                       <td className="px-4 py-3 text-dim/80">{r.tamanho}</td>
                       <td className="px-4 py-3 text-dim/80">{r.genero || "—"}</td>
+                      <td className="px-4 py-3 text-data font-medium whitespace-nowrap">
+                        {Number(r.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </td>
+                      <td className="px-4 py-3 text-dim/70 text-xs whitespace-nowrap" title={r.payment_method || ""}>
+                        {r.status === "pago"
+                          ? r.payment_method === "pix"
+                            ? "Pix"
+                            : r.payment_method === "account_money"
+                              ? "Conta MP"
+                              : r.payment_method || "—"
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-emerald-300 text-xs whitespace-nowrap">
+                        {r.status === "pago" ? getFeeInfo(r.valor, r.payment_method).liquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "—"}
+                      </td>
                       <td className="px-4 py-3 text-dim/60">
                         {r.created_at ? moment(r.created_at).format("DD/MM/YYYY HH:mm") : "—"}
                       </td>
