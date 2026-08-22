@@ -9,6 +9,7 @@ import PaymentReturn from '@/components/entec/PaymentReturn';
 import Home from './pages/Home';
 import Sobre from './pages/Sobre';
 import Admin from './pages/Admin';
+import Privacidade from './pages/Privacidade';
 import VisitTracker from './components/VisitTracker';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/privacidade" element={<Privacidade />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Router>

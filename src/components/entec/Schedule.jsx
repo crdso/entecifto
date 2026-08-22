@@ -1,28 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { SCHEDULE } from "@/data/schedule";
 
-// ============================================================
-//  CONTEÚDO EDITÁVEL DO CRONOGRAMA
-// ============================================================
-const DAYS = [
-  {
-    label: "DIA 1",
-    items: [
-      { time: "08:00", activity: "Credenciamento e abertura oficial do ENTEC 2026" },
-      { time: "08:30", activity: "Coffee Break" },
-      { time: "9:00", activity: "Palestra: Inteligência Artificial, tecnologia e sociedade" },
-      { time: "└—————", activity: "Sorteios, dinâmicas e atividades interativas entre as palestras" },
-    ],
-  },
-  {
-    label: "DIA 2",
-    items: [
-      { time: "14:00", activity: "Apresentação dos stands e projetos" },
-      { time: "16:30", activity: "Premiação dos stands vencedores" },
-      { time: "17:00", activity: "Encerramento oficial do ENTEC 2026" },
-    ],
-  },
-];
+// DAYS vem da fonte única em src/data/schedule.js
+const DAYS = SCHEDULE.map((d) => ({
+  label: d.label,
+  items: d.items.map((it) => ({ time: it.start, end: it.end, activity: it.activity })),
+}));
 
 export default function Schedule() {
   return (

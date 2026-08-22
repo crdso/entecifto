@@ -59,8 +59,12 @@ export default function Footer() {
           <p className="text-dim/40 text-xs text-center sm:text-left">
             © 2026 ENTEC · Instituto Federal do Tocantins / dev: cardoso
           </p>
+          <Link to="/privacidade" className="text-xs text-dim/50 hover:text-lavender transition-colors underline-offset-4 hover:underline">
+            Política de Privacidade
+          </Link>
           <a
             href="#"
+            onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
             className="group inline-flex items-center gap-2 text-xs text-dim/60 hover:text-lavender transition-colors"
           >
             Voltar ao topo

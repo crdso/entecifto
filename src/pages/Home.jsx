@@ -2,8 +2,9 @@ import React from "react";
 import Header from "@/components/entec/Header";
 import Hero from "@/components/entec/Hero";
 import ShirtSection from "@/components/entec/ShirtSection";
-import Countdown from "@/components/entec/Countdown";
 import Schedule from "@/components/entec/Schedule";
+import EntecAoVivo from "@/components/entec/EntecAoVivo";
+import LocationSection from "@/components/entec/LocationSection";
 import Footer from "@/components/entec/Footer";
 
 export default function Home() {
@@ -12,9 +13,10 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Countdown />
+        <EntecAoVivo />
         <ShirtSection />
         <Schedule />
+        <LocationSection />
       </main>
       <Footer />
     </div>

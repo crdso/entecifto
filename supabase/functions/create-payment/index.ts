@@ -79,11 +79,12 @@ Deno.serve(async (req) => {
 
     const phoneDigits = String(inscricao.telefone || "").replace(/\D/g, "");
 
-    // Calcula o valor final: desconto só se o e-mail for elegível E ainda não
-    // houver pagamento aprovado ("pago") para esse e-mail.
+    // SEGURANÇA: preço NUNCA vem do frontend/DB. É calculado aqui no backend
+    // como fonte da verdade (FULL_PRICE + descontos). O campo inscricao.valor
+    // enviado pelo navegador é ignorado — serve só pra exibição.
     const storedEmail = String(inscricao.email || "").trim();
     const emailLocal = storedEmail.toLowerCase().split("@")[0];
-    let valor = Number(inscricao.valor) || FULL_PRICE;
+    let valor = FULL_PRICE;
 
     let discount = 0; // 0 = sem desconto, 10 = R$ 10, 5 = R$ 5
     if (DISCOUNT_10_LOCAL_PARTS.includes(emailLocal)) discount = 10;
