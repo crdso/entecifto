@@ -46,7 +46,7 @@ export default function Countdown() {
         transition={{ duration: 0.7 }}
         className="max-w-4xl mx-auto text-center"
       >
-        <span className="inline-block mb-4 px-3 py-1 rounded-full bg-signal/10 border border-signal/30 text-signal text-xs font-medium tracking-[0.2em] uppercase">
+        <span className="inline-block mb-4 px-3 py-1 rounded-full bg-lavender/10 border border-lavender/20 text-lavender text-xs font-medium tracking-[0.2em] uppercase">
           Falta pouco
         </span>
         <h2 className="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-data to-signal/60">
@@ -76,7 +76,7 @@ export default function Countdown() {
                 >
                   {String(time[u.key]).padStart(2, "0")}
                 </div>
-                <div className="mt-2 text-[10px] sm:text-xs uppercase tracking-[0.2em] text-signal/70 font-medium">
+                <div className="mt-2 text-[10px] sm:text-xs uppercase tracking-[0.2em] text-lavender/80 font-medium">
                   {u.label}
                 </div>
               </motion.div>
