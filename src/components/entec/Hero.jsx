@@ -34,17 +34,6 @@ export default function Hero() {
         transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 }}
         className="max-w-4xl mx-auto mt-10 sm:mt-16"
       >
-        {/* Data + local — pill elegante */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-signal/10 border border-signal/20 text-lavender text-xs font-medium tracking-[0.14em] uppercase backdrop-blur-md"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-pulse animate-pulse" />
-          {EVENT_INFO.dates} • {EVENT_INFO.location}
-        </motion.div>
-
         <h1
           className="mt-6 font-tech font-extrabold leading-[0.9] tracking-[0.03em] text-transparent bg-clip-text bg-gradient-to-r from-signal via-data to-signal bg-[length:200%_auto] animate-shimmer text-6xl sm:text-7xl md:text-8xl"
           style={{ filter: "drop-shadow(0 0 30px rgba(58,1,138,0.45))", animationDuration: "6s" }}

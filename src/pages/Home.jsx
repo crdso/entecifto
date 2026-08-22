@@ -4,7 +4,6 @@ import Hero from "@/components/entec/Hero";
 import ShirtSection from "@/components/entec/ShirtSection";
 import Schedule from "@/components/entec/Schedule";
 import EntecAoVivo from "@/components/entec/EntecAoVivo";
-import LocationSection from "@/components/entec/LocationSection";
 import Footer from "@/components/entec/Footer";
 
 export default function Home() {
@@ -16,7 +15,6 @@ export default function Home() {
         <EntecAoVivo />
         <ShirtSection />
         <Schedule />
-        <LocationSection />
       </main>
       <Footer />
     </div>
