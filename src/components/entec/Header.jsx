@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-const IFTO_LOGO = "/entec-logo.png";
+const LOGO = "/entec.png";
 
 const NAV_ITEMS = [
   { label: "Sobre", to: "/sobre" },
@@ -44,16 +44,13 @@ export default function Header() {
       }`}
     >
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center shrink-0 group">
           <img
-            src={IFTO_LOGO}
-            alt="IFTO"
-            className="h-9 w-9 sm:h-10 sm:w-10 object-contain drop-shadow-[0_0_10px_rgba(36,107,253,0.5)]"
+            src={LOGO}
+            alt="ENTEC 2026"
+            className="h-7 sm:h-8 md:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(36,107,253,0.35)] group-hover:drop-shadow-[0_0_16px_rgba(36,107,253,0.55)] group-hover:brightness-110 transition-all duration-300"
           />
-          <span className="font-display font-bold tracking-[0.2em] text-data text-sm sm:text-lg">
-            ENTEC&nbsp;2026
-          </span>
-        </div>
+        </Link>
 
         {/* Desktop nav */}
         <ul className="hidden md:flex items-center gap-10">
