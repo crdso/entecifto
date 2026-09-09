@@ -5,8 +5,8 @@ export const EVENT_INFO = {
   name: "ENTEC 2026",
   subtitle: "Futuro conectado: como a tecnologia está redesenhando o mundo",
   supportText: "Dois dias de palestras, projetos e conexões que aproximam a sala de aula do futuro.",
-  dates: "16 e 17 de setembro de 2026",
-  datesShort: "16—17 SET 2026",
+  dates: "23 e 24 de setembro de 2026",
+  datesShort: "23—24 SET 2026",
   location: "IFTO — Campus Araguatins",
   locationFull: "Instituto Federal de Educação, Ciência e Tecnologia do Tocantins — Campus Araguatins",
   city: "Araguatins — TO",
@@ -18,20 +18,20 @@ export const EVENT_INFO = {
 
 export const SCHEDULE = [
   {
-    date: "2026-09-16",
+    date: "2026-09-23",
     label: "DIA 1",
-    dateLabel: "16 de setembro",
+    dateLabel: "23 de setembro",
     items: [
       { start: "08:00", end: "08:30", activity: "Credenciamento e abertura oficial do ENTEC 2026" },
-      { start: "08:30", end: "09:00", activity: "Coffee Break" },
-      { start: "09:00", end: "10:30", activity: "Palestra: Inteligência Artificial, tecnologia e sociedade" },
-      { start: "10:30", end: "12:00", activity: "Sorteios, dinâmicas e atividades interativas" },
+      { start: "08:30", end: "10:00", activity: "Palestra: Inteligência Artificial, tecnologia e sociedade" },
+      { start: "10:00", end: "11:30", activity: "Sorteios, dinâmicas e atividades interativas" },
+      { start: "11:30", end: "12:00", activity: "Coffee Break" },
     ],
   },
   {
-    date: "2026-09-17",
+    date: "2026-09-24",
     label: "DIA 2",
-    dateLabel: "17 de setembro",
+    dateLabel: "24 de setembro",
     items: [
       { start: "14:00", end: "16:30", activity: "Apresentação dos stands e projetos" },
       { start: "16:30", end: "17:00", activity: "Premiação dos stands vencedores" },

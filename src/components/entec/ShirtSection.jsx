@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Ban } from "lucide-react";
 import ShirtViewer3D from "@/components/entec/ShirtViewer3D";
 import PurchaseModal from "@/components/entec/PurchaseModal";
+
+// Controle central de disponibilidade da camisa.
+// Quando false: CTA desabilitado, modal não abre, nenhum fluxo de compra é acessível.
+// Quando true no futuro: reativa o comportamento de compra normal.
+export const SHIRT_SALES_AVAILABLE = false;
 
 // ============================================================
 //  CONTEÚDO EDITÁVEL DA SEÇÃO DA CAMISA
@@ -69,14 +74,37 @@ export default function ShirtSection() {
               ))}
             </div>
 
-            <div className="mt-10 flex justify-center lg:justify-start">
+            <div className="mt-10 flex flex-col items-center lg:items-start gap-3">
               <button
-                onClick={() => setModalOpen(true)}
-                className="group relative inline-flex items-center gap-3 px-9 py-4 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold text-base sm:text-lg shadow-[0_4px_20px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_24px_rgba(36,107,253,0.30)] hover:scale-[1.02] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
+                onClick={() => {
+                  if (SHIRT_SALES_AVAILABLE) setModalOpen(true);
+                }}
+                disabled={!SHIRT_SALES_AVAILABLE}
+                aria-disabled={!SHIRT_SALES_AVAILABLE}
+                title={SHIRT_SALES_AVAILABLE ? "Adquirir camisa" : "Vendas indisponíveis"}
+                className={
+                  SHIRT_SALES_AVAILABLE
+                    ? "group relative inline-flex items-center gap-3 px-9 py-4 rounded-full bg-gradient-to-r from-signal to-pulse text-white font-semibold text-base sm:text-lg shadow-[0_4px_20px_rgba(58,1,138,0.25)] hover:shadow-[0_6px_24px_rgba(36,107,253,0.30)] hover:scale-[1.02] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 focus-visible:ring-offset-2 focus-visible:ring-offset-void"
+                    : "relative inline-flex items-center gap-3 px-9 py-4 rounded-full bg-white/5 border border-signal/20 text-dim/50 font-semibold text-base sm:text-lg cursor-not-allowed opacity-80 select-none focus-visible:outline-none"
+                }
               >
-                Adquira a sua!
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                {SHIRT_SALES_AVAILABLE ? (
+                  <>
+                    Adquira a sua!
+                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </>
+                ) : (
+                  <>
+                    <Ban className="h-5 w-5 text-dim/40" />
+                    Vendas indisponíveis
+                  </>
+                )}
               </button>
+              {!SHIRT_SALES_AVAILABLE && (
+                <p className="text-sm text-dim/50 text-center lg:text-left max-w-sm">
+                  As compras da camisa oficial estão indisponíveis no momento.
+                </p>
+              )}
             </div>
           </motion.div>
 
@@ -113,7 +141,7 @@ export default function ShirtSection() {
           </motion.div>
         </div>
       </div>
-        <PurchaseModal open={modalOpen} onClose={() => setModalOpen(false)} />
+        {SHIRT_SALES_AVAILABLE && <PurchaseModal open={modalOpen} onClose={() => setModalOpen(false)} />}
     </section>
   );
 }

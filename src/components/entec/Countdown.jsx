@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 
 // ============================================================
 //  DATA ALVO DA CONTAGEM REGRESSIVA — edite aqui.
-//  ENTEC 2026: 16 de setembro de 2026, 08:00 (quarta-feira, Brasília UTC-3)
+//  ENTEC 2026: 23 de setembro de 2026, 08:00 (quarta-feira, Brasília UTC-3)
 //  Formato: "AAAA-MM-DDTHH:mm:ss-03:00" (offset fixo de Brasília)
 // ============================================================
-const EVENT_DATE = "2026-09-16T08:00:00-03:00";
+const EVENT_DATE = "2026-09-23T08:00:00-03:00";
 
 const UNITS = [
   { key: "days", label: "Dias" },
