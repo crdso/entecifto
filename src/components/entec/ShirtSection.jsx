@@ -7,7 +7,7 @@ import PurchaseModal from "@/components/entec/PurchaseModal";
 // Controle central de disponibilidade da camisa.
 // Quando false: CTA desabilitado, modal não abre, nenhum fluxo de compra é acessível.
 // Quando true no futuro: reativa o comportamento de compra normal.
-export const SHIRT_SALES_AVAILABLE = false;
+export const SHIRT_SALES_AVAILABLE = true;
 
 // ============================================================
 //  CONTEÚDO EDITÁVEL DA SEÇÃO DA CAMISA
@@ -100,6 +100,11 @@ export default function ShirtSection() {
                   </>
                 )}
               </button>
+              {SHIRT_SALES_AVAILABLE && (
+                <p className="text-xs sm:text-[13px] text-dim/60 text-center lg:text-left max-w-sm leading-relaxed">
+                  Pedidos disponíveis até 18 de setembro, mediante pagamento imediato.
+                </p>
+              )}
               {!SHIRT_SALES_AVAILABLE && (
                 <p className="text-sm text-dim/50 text-center lg:text-left max-w-sm">
                   As compras da camisa oficial estão indisponíveis no momento.
