@@ -39,7 +39,8 @@ export default function Hero() {
         <h1
           className="mt-6 font-tech font-extrabold leading-[0.9] tracking-[0.03em] text-transparent bg-clip-text bg-gradient-to-r from-white via-[#E8E9EC] via-[#B9BCC3] via-[#E2E3E6] to-white bg-[length:250%_auto] animate-chrome-shimmer text-6xl sm:text-7xl md:text-8xl"
           style={{
-            filter: "drop-shadow(0 0 22px rgba(255,255,255,0.14)) drop-shadow(0 1px 0 rgba(255,255,255,0.9))",
+            filter:
+              "drop-shadow(0 0 8px rgba(255,255,255,0.45)) drop-shadow(0 0 22px rgba(225,228,235,0.32)) drop-shadow(0 0 55px rgba(190,195,205,0.20))",
             animationDuration: "5.5s",
           }}
         >
