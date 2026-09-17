@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Sobre from './pages/Sobre';
 import Admin from './pages/Admin';
 import Privacidade from './pages/Privacidade';
+import Inscricao from './pages/Inscricao';
 import VisitTracker from './components/VisitTracker';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/sobre" element={<Sobre />} />
+          <Route path="/inscricao" element={<Inscricao />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/privacidade" element={<Privacidade />} />
           <Route path="*" element={<PageNotFound />} />

@@ -7,7 +7,7 @@ import PurchaseModal from "@/components/entec/PurchaseModal";
 // Controle central de disponibilidade da camisa.
 // Quando false: CTA desabilitado, modal não abre, nenhum fluxo de compra é acessível.
 // Quando true no futuro: reativa o comportamento de compra normal.
-export const SHIRT_SALES_AVAILABLE = true;
+export const SHIRT_SALES_AVAILABLE = false;
 
 // ============================================================
 //  CONTEÚDO EDITÁVEL DA SEÇÃO DA CAMISA

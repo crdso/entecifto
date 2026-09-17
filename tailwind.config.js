@@ -10,13 +10,13 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			void: '#050816',
-  			energy: '#24104A',
-  			signal: '#3a018a',
-  			lavender: '#a78bfa',
-  			pulse: '#246BFD',
-  			data: '#FFFFFF',
-  			dim: '#D8DCE5',
+  			void: '#070708',
+  			energy: '#171719',
+  			signal: '#B9BCC3',
+  			lavender: '#E2E3E6',
+  			pulse: '#858A93',
+  			data: '#F7F7F8',
+  			dim: '#A4A7AD',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -81,8 +81,8 @@ module.exports = {
   				'50%': { transform: 'translateY(-12px)' }
   			},
   			'pulse-glow': {
-  				'0%, 100%': { boxShadow: '0 0 0 0 rgba(58, 1, 138, 0.5)' },
-  				'50%': { boxShadow: '0 0 0 16px rgba(58, 1, 138, 0)' }
+  				'0%, 100%': { boxShadow: '0 0 0 0 rgba(185,188,195,0.4)' },
+  				'50%': { boxShadow: '0 0 0 16px rgba(185,188,195,0)' }
   			},
   			'scan-line': {
   				'0%': { transform: 'translateY(-100%)', opacity: '0' },
@@ -132,6 +132,24 @@ module.exports = {
   				'0%, 100%': { transform: 'translate(0, 0)' },
   				'50%': { transform: 'translate(-16px, -16px)' }
   			},
+  			'fabric-drift': {
+  				'0%': { transform: 'scale(1.06) translate(0, 0)' },
+  				'50%': { transform: 'scale(1.10) translate(-1.5%, 1%)' },
+  				'100%': { transform: 'scale(1.06) translate(0, 0)' }
+  			},
+  			'fabric-drift-2': {
+  				'0%': { transform: 'scale(1.12) translate(0, 0)' },
+  				'50%': { transform: 'scale(1.16) translate(1.2%, -0.8%)' },
+  				'100%': { transform: 'scale(1.12) translate(0, 0)' }
+  			},
+  			'chrome-shimmer': {
+  				'0%': { backgroundPosition: '-250% center' },
+  				'100%': { backgroundPosition: '250% center' }
+  			},
+  			'silver-glow': {
+  				'0%, 100%': { opacity: '0.7' },
+  				'50%': { opacity: '1' }
+  			},
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -149,7 +167,7 @@ module.exports = {
   				}
   			}
   		},
-  		animation: {
+   		animation: {
   			'float': 'float 4s ease-in-out infinite',
   			'pulse-glow': 'pulse-glow 2s ease-out infinite',
   			'scan-line': 'scan-line 4s ease-in-out infinite',
@@ -157,12 +175,16 @@ module.exports = {
   			'particle-drift': 'particle-drift 8s linear infinite',
   			'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
   			'shimmer': 'shimmer 3s linear infinite',
-			'aurora-1': 'aurora-1 26s ease-in-out infinite',
-			'aurora-2': 'aurora-2 32s ease-in-out infinite',
-			'aurora-3': 'aurora-3 38s ease-in-out infinite',
-			'aurora-4': 'aurora-4 44s ease-in-out infinite',
-			'spin-slow': 'spin-slow 110s linear infinite',
-			'drift-grid': 'drift-grid 18s ease-in-out infinite',
+ 			'aurora-1': 'aurora-1 26s ease-in-out infinite',
+ 			'aurora-2': 'aurora-2 32s ease-in-out infinite',
+ 			'aurora-3': 'aurora-3 38s ease-in-out infinite',
+ 			'aurora-4': 'aurora-4 44s ease-in-out infinite',
+ 			'spin-slow': 'spin-slow 110s linear infinite',
+ 			'drift-grid': 'drift-grid 18s ease-in-out infinite',
+  			'fabric-drift': 'fabric-drift 42s ease-in-out infinite',
+  			'fabric-drift-2': 'fabric-drift-2 58s ease-in-out infinite',
+  			'chrome-shimmer': 'chrome-shimmer 5.5s linear infinite',
+  			'silver-glow': 'silver-glow 4s ease-in-out infinite',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}

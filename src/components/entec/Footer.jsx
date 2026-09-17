@@ -5,7 +5,7 @@ import { ArrowUp } from "lucide-react";
 
 const NAV = [
   { label: "Início", to: "/" },
-  { label: "A Camisa", to: "/#camisa" },
+  { label: "Inscrição", to: "/inscricao" },
   { label: "Programação", to: "/#cronograma" },
 ];
 
@@ -17,8 +17,8 @@ export default function Footer() {
   const linkClass = "text-sm text-dim/70 hover:text-data transition-colors";
 
   return (
-    <footer className="relative pt-16 pb-8 overflow-hidden border-t border-signal/15">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-signal/40 to-transparent" />
+    <footer className="relative pt-16 pb-8 overflow-hidden border-t border-white/[0.06]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-60" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -29,7 +29,7 @@ export default function Footer() {
       >
         <div className="grid gap-10 sm:grid-cols-2 text-center">
           <div>
-            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/90 font-medium mb-4">
+            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/80 font-medium mb-4">
               Navegação
             </h4>
             <ul className="space-y-2.5">
@@ -42,7 +42,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/90 font-medium mb-4">
+            <h4 className="text-[11px] uppercase tracking-[0.18em] text-lavender/80 font-medium mb-4">
               O Evento
             </h4>
             <ul className="space-y-2.5">
@@ -55,7 +55,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-signal/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-12 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-dim/40 text-xs text-center sm:text-left">
             © 2026 ENTEC · Instituto Federal do Tocantins / dev: cardoso
           </p>
@@ -68,7 +68,7 @@ export default function Footer() {
             className="group inline-flex items-center gap-2 text-xs text-dim/60 hover:text-lavender transition-colors"
           >
             Voltar ao topo
-            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-signal/20 group-hover:border-signal/60 transition-colors">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 group-hover:border-white/25 transition-colors">
               <ArrowUp className="h-3.5 w-3.5" />
             </span>
           </a>

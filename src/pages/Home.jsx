@@ -1,7 +1,6 @@
 import React from "react";
 import Header from "@/components/entec/Header";
 import Hero from "@/components/entec/Hero";
-import ShirtSection from "@/components/entec/ShirtSection";
 import Schedule from "@/components/entec/Schedule";
 import EntecAoVivo from "@/components/entec/EntecAoVivo";
 import Footer from "@/components/entec/Footer";
@@ -13,10 +12,9 @@ export default function Home() {
       <main>
         <Hero />
         <EntecAoVivo />
-        <ShirtSection />
         <Schedule />
       </main>
       <Footer />
     </div>
   );
-}  
+}

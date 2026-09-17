@@ -107,7 +107,12 @@
   .animate-aurora-4,
   .animate-spin-slow,
   .animate-drift-grid,
-  .animate-particle-drift {
+  .animate-particle-drift,
+  .animate-fabric-drift,
+  .animate-fabric-drift-2,
+  .animate-chrome-shimmer,
+  .animate-shimmer,
+  .animate-silver-glow {
     animation: none !important;
   }
 }
