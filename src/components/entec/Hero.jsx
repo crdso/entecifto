@@ -36,7 +36,7 @@ export default function Hero() {
         className="max-w-4xl mx-auto mt-10 sm:mt-16"
       >
         <h1
-          className="mt-6 font-tech font-extrabold leading-[0.9] tracking-[0.03em] text-transparent bg-clip-text bg-gradient-to-r from-[#9A9EA5] via-white to-[#9A9EA5] bg-[length:200%_auto] animate-shimmer text-6xl sm:text-7xl md:text-8xl"
+          className="mt-6 font-tech font-extrabold leading-[0.9] tracking-[0.03em] text-transparent bg-clip-text bg-gradient-to-r from-[#5F636A] via-white to-[#5F636A] bg-[length:200%_auto] animate-shimmer text-6xl sm:text-7xl md:text-8xl"
           style={{
             filter: "drop-shadow(0 0 30px rgba(220,223,230,0.35))",
             animationDuration: "6s",
