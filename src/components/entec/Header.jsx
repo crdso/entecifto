@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-const LOGO = "/entec.png";
+const LOGO = "/ENTEC ICON.png";
 
 const NAV_ITEMS = [
   { label: "Sobre", to: "/sobre" },

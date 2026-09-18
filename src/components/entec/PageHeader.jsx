@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-const LOGO = "/entec.png";
+const LOGO = "/ENTEC ICON.png";
 
 // Cabeçalho reutilizável para as páginas internas (logo + voltar ao início).
 export default function PageHeader() {

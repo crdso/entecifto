@@ -166,10 +166,6 @@ export default function Inscricao() {
             transition={{ duration: 0.6 }}
             className="text-center mb-8 sm:mb-10"
           >
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md text-[11px] tracking-[0.18em] uppercase font-medium text-lavender">
-              <BadgeCheck className="h-3.5 w-3.5 text-signal" />
-              Inscrições abertas
-            </div>
             <h1 className="mt-5 font-tech font-extrabold tracking-[0.04em] leading-none">
               <span className="block text-3xl sm:text-4xl text-dim/90 font-semibold tracking-[0.22em]">INSCRIÇÃO</span>
               <span
