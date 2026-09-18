@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2, Shield, Wallet, Smartphone } from "lucide-react";
+import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2, Wallet } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
+import { AppleWalletBadge, GoogleWalletBadge } from "@/components/entec/WalletBadges";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 function maskCPF(v) {
@@ -174,7 +175,7 @@ export default function Inscricao() {
   };
 
   const inputBase =
-    "w-full min-w-0 max-w-full box-border rounded-2xl bg-void/60 border px-4 py-3.5 text-base sm:text-[15px] text-data placeholder:text-dim/40 outline-none transition-all [&::-webkit-date-and-time-value]:text-left";
+    "block w-full min-w-0 max-w-full box-border rounded-2xl bg-void/60 border px-4 py-3.5 text-base sm:text-[15px] text-data placeholder:text-dim/40 outline-none transition-all overflow-hidden text-ellipsis [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:opacity-70";
   const inputOk = "border-white/10 focus:border-white/25 focus:bg-void/80";
   const inputErr = "border-red-500/40 focus:border-red-500/60 bg-red-500/5";
 
@@ -231,20 +232,6 @@ export default function Inscricao() {
                   </p>
                   <p className="mt-2 text-xs tracking-[0.16em] uppercase text-lavender/70">23 e 24 de setembro · IFTO — Campus Araguatins</p>
 
-                  {/* CPF protegido — novo visual discreto */}
-                  <div className="mt-6 mx-auto max-w-md rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm px-5 py-4 text-left">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-[11px] tracking-[0.14em] uppercase font-medium text-dim/70">
-                        <Shield className="h-4 w-4 text-emerald-300/80" />
-                        CPF protegido
-                      </div>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white text-void px-3 py-1 text-xs font-semibold tracking-wide">
-                        Final {success.cpf_last4}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-xs leading-relaxed text-dim/60">Seus dados estão protegidos. Após o evento, o certificado poderá ser consultado utilizando CPF e data de nascimento.</p>
-                  </div>
-
                   {/* Wallet */}
                   {success.wallet_status === "ready" && success.wallet && (
                     <div className="mt-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 sm:p-6 text-left">
@@ -253,24 +240,12 @@ export default function Inscricao() {
                         Sua credencial digital está pronta.
                       </div>
                       <p className="mt-1 text-xs text-dim/60">Adicione ao seu celular para credenciamento no evento.</p>
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center sm:justify-start items-center">
                         {success.wallet.apple_available && (
-                          <button
-                            onClick={handleAppleWallet}
-                            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-full bg-data text-void text-sm font-semibold tracking-[0.08em] uppercase hover:bg-white transition-colors"
-                          >
-                            <Smartphone className="h-4 w-4" />
-                            Adicionar à Apple Wallet
-                          </button>
+                          <AppleWalletBadge onClick={handleAppleWallet} />
                         )}
                         {success.wallet.google_available && (
-                          <button
-                            onClick={handleGoogleWallet}
-                            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-full bg-white/[0.06] border border-white/15 text-data text-sm font-medium tracking-[0.08em] uppercase hover:bg-white/[0.10] transition-colors"
-                          >
-                            <Wallet className="h-4 w-4" />
-                            Adicionar ao Google Wallet
-                          </button>
+                          <GoogleWalletBadge onClick={handleGoogleWallet} />
                         )}
                       </div>
                       {!success.wallet.apple_available && !success.wallet.google_available && (
@@ -306,8 +281,8 @@ export default function Inscricao() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleInscricao} noValidate className="space-y-5 min-w-0">
-                    <div className="min-w-0">
+                  <form onSubmit={handleInscricao} noValidate className="space-y-5 min-w-0 w-full">
+                    <div className="min-w-0 w-full">
                       <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                         Nome completo
                       </label>
@@ -327,7 +302,7 @@ export default function Inscricao() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0 w-full">
                       <div className="min-w-0">
                         <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                           CPF
@@ -439,8 +414,8 @@ export default function Inscricao() {
                 </div>
               </div>
 
-              <form onSubmit={handleCertificado} noValidate className="mt-6 space-y-4 min-w-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+              <form onSubmit={handleCertificado} noValidate className="mt-6 space-y-4 min-w-0 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
                   <div className="min-w-0">
                     <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">CPF</label>
                     <input

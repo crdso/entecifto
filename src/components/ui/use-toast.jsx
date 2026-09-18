@@ -134,6 +134,11 @@ function toast({ ...props }) {
     },
   });
 
+  // auto-dismiss suave após 4.5s (mantém botão X funcional)
+  setTimeout(() => {
+    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
+  }, 4500);
+
   return {
     id,
     dismiss,
