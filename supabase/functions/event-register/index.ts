@@ -149,9 +149,10 @@ Deno.serve(async (req) => {
     const hasPassfastConfig = Boolean(PASSFAST_API_KEY && PASSFAST_PROJECT_ID && PASSFAST_TEMPLATE_ID);
 
     if (hasPassfastConfig) {
+      const startedAt = Date.now();
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000);
+        const timeout = setTimeout(() => controller.abort(), 45000);
         const passRes = await fetch("https://api.passfa.st/functions/v1/generate-pass", {
           method: "POST",
           headers: {
@@ -176,6 +177,10 @@ Deno.serve(async (req) => {
           signal: controller.signal,
         });
         clearTimeout(timeout);
+        console.log("PassFast generate completed", {
+          status: passRes.status,
+          duration_ms: Date.now() - startedAt,
+        });
         const passText = await passRes.text();
         let passData: Record<string, unknown> = {};
         try { passData = passText ? JSON.parse(passText) : {}; } catch { passData = { raw: passText }; }
@@ -219,6 +224,11 @@ Deno.serve(async (req) => {
           }
         }
       } catch (e) {
+        if ((e as Error).name === "AbortError") {
+          console.warn("PassFast generate timeout", {
+            duration_ms: Date.now() - startedAt,
+          });
+        }
         const msg = (e as Error).name === "AbortError" ? "PassFast timeout" : (e as Error).message;
         walletError = msg || "Falha ao gerar credencial";
         walletStatus = "error";

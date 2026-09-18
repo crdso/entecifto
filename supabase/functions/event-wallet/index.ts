@@ -94,9 +94,10 @@ Deno.serve(async (req) => {
         await supabase.from("event_registrations").update({ pass_serial: passSerial }).eq("id", registrationId);
       }
       // Call PassFast with get_or_create
+      const startedAt = Date.now();
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000);
+        const timeout = setTimeout(() => controller.abort(), 45000);
         const passRes = await fetch("https://api.passfa.st/functions/v1/generate-pass", {
           method: "POST",
           headers: {
@@ -121,6 +122,10 @@ Deno.serve(async (req) => {
           signal: controller.signal,
         });
         clearTimeout(timeout);
+        console.log("PassFast generate completed", {
+          status: passRes.status,
+          duration_ms: Date.now() - startedAt,
+        });
         const text = await passRes.text();
         let passData: Record<string, unknown> = {};
         try { passData = text ? JSON.parse(text) : {}; } catch { passData = { raw: text }; }
@@ -151,6 +156,11 @@ Deno.serve(async (req) => {
         }).eq("id", registrationId);
         return new Response(JSON.stringify({ ok: true, wallet_status: walletStatus, apple_available: hasApple, google_available: hasGoogle }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (e) {
+        if ((e as Error).name === "AbortError") {
+          console.warn("PassFast generate timeout", {
+            duration_ms: Date.now() - startedAt,
+          });
+        }
         const msg = (e as Error).name === "AbortError" ? "PassFast timeout" : (e as Error).message;
         await supabase.from("event_registrations").update({ wallet_status: "error", wallet_error: msg }).eq("id", registrationId);
         return new Response(JSON.stringify({ error: msg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
