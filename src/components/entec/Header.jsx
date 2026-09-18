@@ -48,7 +48,7 @@ export default function Header() {
           <img
             src={LOGO}
             alt="ENTEC 2026"
-            className="h-8 sm:h-9 md:h-11 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.18)] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.28)] group-hover:brightness-[1.08] transition-all duration-300"
+            className="h-14 sm:h-16 md:h-20 w-auto object-contain drop-shadow-[0_0_14px_rgba(255,255,255,0.22)] group-hover:drop-shadow-[0_0_18px_rgba(255,255,255,0.32)] group-hover:brightness-[1.08] transition-all duration-300"
           />
         </Link>
 
