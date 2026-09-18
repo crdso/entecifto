@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X, AlertCircle, Wallet } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { selectRows, supabase, updateRow, deleteRow } from "@/lib/supabase";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabaseConfig";
 import jsPDF from "jspdf";
 import {
   DropdownMenu,
@@ -393,6 +394,30 @@ export default function Admin() {
       setParticipantes((prev) => prev.filter((x) => x.id !== p.id));
     } catch (e) {
       setError(e.message || "Falha ao remover participante.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const retryWallet = async (p) => {
+    if (!session?.access_token) return;
+    setUpdatingId(p.id);
+    setError("");
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-wallet`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ registration_id: p.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao gerar credencial (${res.status})`);
+      await loadParticipantes();
+    } catch (e) {
+      setError(e.message || "Falha ao tentar gerar novamente.");
     } finally {
       setUpdatingId(null);
     }
@@ -945,6 +970,7 @@ export default function Admin() {
                         <th className="px-4 py-3 font-medium">CPF</th>
                         <th className="px-4 py-3 font-medium">Inscrição</th>
                         <th className="px-4 py-3 font-medium">Presença</th>
+                        <th className="px-4 py-3 font-medium">Credencial</th>
                         <th className="px-4 py-3 font-medium">Ação</th>
                       </tr>
                     </thead>
@@ -970,6 +996,33 @@ export default function Admin() {
                                 <UserCheck className="h-3.5 w-3.5" />
                                 Pendente
                               </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {p.wallet_status === "ready" ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300">
+                                <Wallet className="h-3 w-3" /> Pronta
+                              </span>
+                            ) : p.wallet_status === "error" ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/15 px-2.5 py-1 text-xs text-amber-300">
+                                <AlertCircle className="h-3 w-3" /> Erro
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-signal/20 px-2.5 py-1 text-xs text-dim/60">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Pendente
+                              </span>
+                            )}
+                            {p.wallet_status === "error" && (
+                              <button
+                                onClick={() => retryWallet(p)}
+                                disabled={updatingId === p.id}
+                                className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-signal/20 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-dim/70 hover:text-data hover:border-signal/40 transition-all disabled:opacity-50"
+                                title="Tentar gerar novamente"
+                              >
+                                {updatingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                                Tentar novamente
+                              </button>
                             )}
                           </td>
                           <td className="px-4 py-3">

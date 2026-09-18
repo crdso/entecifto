@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2 } from "lucide-react";
+import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2, Shield, Wallet, Smartphone } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
@@ -119,11 +119,24 @@ export default function Inscricao() {
         birthDate: form.nascimento,
         email: form.email.trim(),
       });
-      setSuccess({ cpf_last4: result.cpf_last4 || form.cpf.replace(/\D/g, "").slice(-4) });
-      toast({
-        title: "Inscrição confirmada!",
-        description: "Sua participação no ENTEC 2026 foi registrada com sucesso.",
+      setSuccess({
+        cpf_last4: result.cpf_last4 || form.cpf.replace(/\D/g, "").slice(-4),
+        wallet_status: result.wallet_status || "pending",
+        wallet_access_token: result.wallet_access_token || null,
+        wallet: result.wallet || null,
+        wallet_error: result.wallet_error || null,
       });
+      if (result.wallet_status === "error") {
+        toast({
+          title: "Inscrição confirmada!",
+          description: "Sua participação foi registrada, mas não foi possível gerar sua credencial digital agora.",
+        });
+      } else {
+        toast({
+          title: "Inscrição confirmada!",
+          description: "Sua participação no ENTEC 2026 foi registrada com sucesso.",
+        });
+      }
     } catch (err) {
       const status = err.status || 0;
       let msg = err.message || "Não foi possível concluir sua inscrição. Tente novamente.";
@@ -148,8 +161,20 @@ export default function Inscricao() {
     setShowCertModal(true);
   };
 
+  const handleAppleWallet = () => {
+    if (!success?.wallet_access_token) return;
+    const url = `${SUPABASE_URL}/functions/v1/event-wallet?token=${encodeURIComponent(success.wallet_access_token)}&type=apple`;
+    window.location.href = url;
+  };
+  const handleGoogleWallet = () => {
+    if (!success?.wallet_access_token) return;
+    // Google uses same wallet token but type google redirects to save_url
+    const url = `${SUPABASE_URL}/functions/v1/event-wallet?token=${encodeURIComponent(success.wallet_access_token)}&type=google`;
+    window.open(url, "_blank");
+  };
+
   const inputBase =
-    "w-full rounded-2xl bg-void/60 border px-4 py-3.5 text-[15px] text-data placeholder:text-dim/40 outline-none transition-all";
+    "w-full min-w-0 max-w-full box-border rounded-2xl bg-void/60 border px-4 py-3.5 text-base sm:text-[15px] text-data placeholder:text-dim/40 outline-none transition-all [&::-webkit-date-and-time-value]:text-left";
   const inputOk = "border-white/10 focus:border-white/25 focus:bg-void/80";
   const inputErr = "border-red-500/40 focus:border-red-500/60 bg-red-500/5";
 
@@ -158,7 +183,7 @@ export default function Inscricao() {
       <Header />
 
       <main className="relative px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16">
-        <div className="max-w-[760px] mx-auto">
+        <div className="max-w-[760px] mx-auto min-w-0">
           {/* Page header */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -194,9 +219,9 @@ export default function Inscricao() {
             <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.07),transparent_70%)] blur-2xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(185,188,195,0.06),transparent_70%)] blur-2xl" />
 
-            <div className="relative p-6 sm:p-8 md:p-10">
+            <div className="relative p-6 sm:p-8 md:p-10 min-w-0">
               {success ? (
-                <div className="text-center py-6">
+                <div className="text-center py-6 min-w-0">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
                     <CheckCircle2 className="h-8 w-8" />
                   </div>
@@ -205,11 +230,68 @@ export default function Inscricao() {
                     Sua participação no ENTEC 2026 foi registrada com sucesso.
                   </p>
                   <p className="mt-2 text-xs tracking-[0.16em] uppercase text-lavender/70">23 e 24 de setembro · IFTO — Campus Araguatins</p>
-                  <div className="mt-6 mx-auto max-w-md rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left">
-                    <p className="text-xs tracking-[0.16em] uppercase text-dim/60">CPF</p>
-                    <p className="mt-1 font-mono text-sm text-data">•••• •••• •••• {success.cpf_last4}</p>
-                    <p className="mt-3 text-xs leading-relaxed text-dim/60">Após o evento, o certificado poderá ser consultado utilizando CPF e data de nascimento.</p>
+
+                  {/* CPF protegido — novo visual discreto */}
+                  <div className="mt-6 mx-auto max-w-md rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm px-5 py-4 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-[11px] tracking-[0.14em] uppercase font-medium text-dim/70">
+                        <Shield className="h-4 w-4 text-emerald-300/80" />
+                        CPF protegido
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white text-void px-3 py-1 text-xs font-semibold tracking-wide">
+                        Final {success.cpf_last4}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-xs leading-relaxed text-dim/60">Seus dados estão protegidos. Após o evento, o certificado poderá ser consultado utilizando CPF e data de nascimento.</p>
                   </div>
+
+                  {/* Wallet */}
+                  {success.wallet_status === "ready" && success.wallet && (
+                    <div className="mt-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 sm:p-6 text-left">
+                      <div className="flex items-center gap-2 text-sm font-medium text-data">
+                        <Wallet className="h-4 w-4 text-signal" />
+                        Sua credencial digital está pronta.
+                      </div>
+                      <p className="mt-1 text-xs text-dim/60">Adicione ao seu celular para credenciamento no evento.</p>
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {success.wallet.apple_available && (
+                          <button
+                            onClick={handleAppleWallet}
+                            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-full bg-data text-void text-sm font-semibold tracking-[0.08em] uppercase hover:bg-white transition-colors"
+                          >
+                            <Smartphone className="h-4 w-4" />
+                            Adicionar à Apple Wallet
+                          </button>
+                        )}
+                        {success.wallet.google_available && (
+                          <button
+                            onClick={handleGoogleWallet}
+                            className="inline-flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-full bg-white/[0.06] border border-white/15 text-data text-sm font-medium tracking-[0.08em] uppercase hover:bg-white/[0.10] transition-colors"
+                          >
+                            <Wallet className="h-4 w-4" />
+                            Adicionar ao Google Wallet
+                          </button>
+                        )}
+                      </div>
+                      {!success.wallet.apple_available && !success.wallet.google_available && (
+                        <p className="mt-3 text-xs text-amber-300">Credencial gerada, mas nenhuma carteira retornou URL. Contate a organização.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {success.wallet_status === "error" && (
+                    <div className="mt-8 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5 text-left">
+                      <p className="text-sm font-medium text-amber-200">Inscrição confirmada, mas não foi possível gerar sua credencial digital agora.</p>
+                      <p className="mt-1 text-xs text-amber-200/70">Sua inscrição continua válida. A credencial poderá ser gerada posteriormente pela organização.</p>
+                    </div>
+                  )}
+
+                  {success.wallet_status === "pending" && (
+                    <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left">
+                      <p className="text-sm text-dim/70">Sua credencial está sendo preparada...</p>
+                    </div>
+                  )}
+
                   <p className="mt-6 text-xs text-dim/50">Você pode fechar esta página com segurança.</p>
                 </div>
               ) : (
@@ -224,8 +306,8 @@ export default function Inscricao() {
                     </div>
                   </div>
 
-                  <form onSubmit={handleInscricao} noValidate className="space-y-5">
-                    <div>
+                  <form onSubmit={handleInscricao} noValidate className="space-y-5 min-w-0">
+                    <div className="min-w-0">
                       <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                         Nome completo
                       </label>
@@ -245,8 +327,8 @@ export default function Inscricao() {
                       )}
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-5">
-                      <div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0">
+                      <div className="min-w-0">
                         <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                           CPF
                         </label>
@@ -267,7 +349,7 @@ export default function Inscricao() {
                         )}
                       </div>
 
-                      <div>
+                      <div className="min-w-0">
                         <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                           Data de nascimento
                         </label>
@@ -287,7 +369,7 @@ export default function Inscricao() {
                       </div>
                     </div>
 
-                    <div>
+                    <div className="min-w-0">
                       <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                         E-mail
                       </label>
@@ -342,7 +424,7 @@ export default function Inscricao() {
             className="relative mt-6 sm:mt-8 rounded-[28px] sm:rounded-[32px] border border-white/[0.07] bg-[rgba(23,23,25,0.55)] backdrop-blur-xl overflow-hidden shadow-[0_16px_48px_-16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)]"
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="p-6 sm:p-8 md:p-10">
+            <div className="p-6 sm:p-8 md:p-10 min-w-0">
               <div className="flex items-start gap-3.5">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] border border-white/10 text-lavender">
                   <Award className="h-5 w-5" />
@@ -357,9 +439,9 @@ export default function Inscricao() {
                 </div>
               </div>
 
-              <form onSubmit={handleCertificado} noValidate className="mt-6 space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
+              <form onSubmit={handleCertificado} noValidate className="mt-6 space-y-4 min-w-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+                  <div className="min-w-0">
                     <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">CPF</label>
                     <input
                       value={certForm.cpf}
@@ -370,7 +452,7 @@ export default function Inscricao() {
                     />
                     {certErrors.cpf && <p className="mt-1.5 text-xs text-red-300">{certErrors.cpf}</p>}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">
                       Data de nascimento
                     </label>

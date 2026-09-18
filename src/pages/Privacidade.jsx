@@ -72,7 +72,31 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">3. Pagamentos</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">3. Credencial digital (Apple Wallet / Google Wallet)</h2>
+            <p className="mt-2">
+              A credencial digital para credenciamento no evento é opcional e complementar à inscrição. Após a confirmação da inscrição, o sistema pode gerar um cartão para Apple Wallet e/ou Google Wallet por meio do provedor <strong className="text-data">PassFast</strong>.
+            </p>
+            <p className="mt-2">Para essa geração, são enviados ao PassFast apenas:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>nome do participante;</li>
+              <li>identificador aleatório da credencial (ticket_id no formato ENTEC26-...);</li>
+              <li>informações públicas do evento (data 23/09/2026, local IFTO Campus Araguatins, horário 8:00).</li>
+            </ul>
+            <p className="mt-3">Não são enviados ao PassFast:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>CPF;</li>
+              <li>data de nascimento;</li>
+              <li>cpf_hash;</li>
+              <li>lookup_hash;</li>
+              <li>e-mail ou outros dados sensíveis.</li>
+            </ul>
+            <p className="mt-3">
+              O QR da carteira contém apenas o ticket_id aleatório. A verificação do QR é feita no servidor comparando o hash do token (HMAC-SHA256 com chave secreta) com o valor armazenado, sem expor CPF. Não são realizadas garantias absolutas de segurança, e o serviço depende também das práticas e disponibilidade do provedor PassFast.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">4. Pagamentos</h2>
             <p className="mt-2">
               Os pagamentos são processados por meio do <strong className="text-data">Mercado Pago</strong>.
             </p>
@@ -88,7 +112,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">4. Dados de acesso ao site</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">5. Dados de acesso ao site</h2>
             <p className="mt-2">Para acompanhar o funcionamento e a utilização do site, podem ser registrados automaticamente:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
               <li>endereço IP;</li>
@@ -104,7 +128,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">5. Armazenamento e serviços utilizados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">6. Armazenamento e serviços utilizados</h2>
             <p className="mt-2">
               Os dados relacionados aos pedidos e aos registros técnicos do site são armazenados em serviços de infraestrutura utilizados para o funcionamento e administração da plataforma.
             </p>
@@ -115,7 +139,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">6. Compartilhamento de dados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">7. Compartilhamento de dados</h2>
             <p className="mt-2">Os dados pessoais não são vendidos ou comercializados.</p>
             <p className="mt-2">Eles poderão ser compartilhados apenas quando necessário para:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
@@ -129,7 +153,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">7. Conservação dos dados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">8. Conservação dos dados</h2>
             <p className="mt-2">
               Os dados são mantidos somente pelo período necessário para as finalidades relacionadas ao evento, às inscrições, ao controle de presença e emissão de certificados, às compras, à entrega das camisas, à administração do site e ao cumprimento de eventuais obrigações aplicáveis.
             </p>
@@ -137,7 +161,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">8. Segurança</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">9. Segurança</h2>
             <p className="mt-2">São utilizadas medidas técnicas para limitar o acesso aos dados e proteger as informações armazenadas.</p>
             <p className="mt-2">
               Ainda assim, nenhum sistema conectado à internet pode garantir segurança absoluta, e são adotadas medidas compatíveis com a finalidade e o porte deste site.
@@ -145,7 +169,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">9. Direitos do titular</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">10. Direitos do titular</h2>
             <p className="mt-2">
               Nos termos da Lei Geral de Proteção de Dados Pessoais — <strong className="text-data">LGPD (Lei nº 13.709/2018)</strong> — o titular poderá solicitar, quando aplicável:
             </p>
@@ -160,7 +184,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">10. Alterações nesta política</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">11. Alterações nesta política</h2>
             <p className="mt-2">Esta Política de Privacidade poderá ser atualizada caso ocorram mudanças relevantes no funcionamento do site ou na forma como os dados são tratados.</p>
             <p className="mt-2">A versão mais recente estará sempre disponível nesta página.</p>
           </section>
