@@ -120,7 +120,7 @@ function toast({ ...props }) {
     });
 
   const dismiss = () =>
-    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
+    dispatch({ type: actionTypes.REMOVE_TOAST, toastId: id });
 
   dispatch({
     type: actionTypes.ADD_TOAST,
@@ -136,7 +136,7 @@ function toast({ ...props }) {
 
   // auto-dismiss suave após 4.5s (mantém botão X funcional)
   setTimeout(() => {
-    dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
+    dispatch({ type: actionTypes.REMOVE_TOAST, toastId: id });
   }, 4500);
 
   return {
@@ -157,12 +157,12 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
 
   return {
     ...state,
     toast,
-    dismiss: (toastId) => dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
+    dismiss: (toastId) => dispatch({ type: actionTypes.REMOVE_TOAST, toastId }),
   };
 }
 
