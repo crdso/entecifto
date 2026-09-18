@@ -85,11 +85,65 @@ Deno.serve(async (req) => {
   }
 
   const action = String((body as Record<string, unknown>).action || "").trim().toLowerCase();
-  const ticketIdRaw = String((body as Record<string, unknown>).ticket_id || (body as Record<string, unknown>).ticketId || "").trim().toUpperCase();
+  const isQrAction = ["lookup", "confirm"].includes(action);
+  const isManualAction = ["manual_confirm", "manual_remove"].includes(action);
 
-  if (!action || !["lookup", "confirm"].includes(action)) {
-    return new Response(JSON.stringify({ error: "Ação inválida. Use lookup ou confirm." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!action || (!isQrAction && !isManualAction)) {
+    return new Response(JSON.stringify({ error: "Ação inválida. Use lookup, confirm, manual_confirm ou manual_remove." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+
+  // Manual actions via registration_id
+  if (isManualAction) {
+    const registrationId = String((body as Record<string, unknown>).registration_id || (body as Record<string, unknown>).id || "").trim();
+    if (!registrationId) {
+      return new Response(JSON.stringify({ error: "registration_id obrigatório." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+      const { data: reg, error: fetchErr } = await supabase.from("event_registrations").select("id, name, email, created_at, attendance_confirmed, attendance_confirmed_at, wallet_status").eq("id", registrationId).single();
+      if (fetchErr || !reg) {
+        return new Response(JSON.stringify({ error: "Participante não encontrado." }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const participant = {
+        id: (reg as Record<string, unknown>).id,
+        name: (reg as Record<string, unknown>).name,
+        email: (reg as Record<string, unknown>).email,
+        created_at: (reg as Record<string, unknown>).created_at,
+        attendance_confirmed: (reg as Record<string, unknown>).attendance_confirmed,
+        attendance_confirmed_at: (reg as Record<string, unknown>).attendance_confirmed_at,
+        wallet_status: (reg as Record<string, unknown>).wallet_status,
+      };
+      if (action === "manual_confirm") {
+        if (participant.attendance_confirmed) {
+          return new Response(JSON.stringify({ ok: true, status: "already_confirmed", participant }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const nowIso = new Date().toISOString();
+        const { data: updated, error: updErr } = await supabase.from("event_registrations").update({ attendance_confirmed: true, attendance_confirmed_at: nowIso, attendance_confirmed_by: user.id }).eq("id", participant.id).eq("attendance_confirmed", false).select("id, name, email, created_at, attendance_confirmed, attendance_confirmed_at, wallet_status").single();
+        if (updErr || !updated) {
+          const { data: recheck } = await supabase.from("event_registrations").select("id, name, email, created_at, attendance_confirmed, attendance_confirmed_at, wallet_status").eq("id", participant.id).single();
+          if (recheck && (recheck as Record<string, unknown>).attendance_confirmed) {
+            return new Response(JSON.stringify({ ok: true, status: "already_confirmed", participant: { id: (recheck as Record<string, unknown>).id, name: (recheck as Record<string, unknown>).name, email: (recheck as Record<string, unknown>).email, created_at: (recheck as Record<string, unknown>).created_at, attendance_confirmed: true, attendance_confirmed_at: (recheck as Record<string, unknown>).attendance_confirmed_at, wallet_status: (recheck as Record<string, unknown>).wallet_status } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          return new Response(JSON.stringify({ error: "Não foi possível confirmar. Tente novamente." }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        return new Response(JSON.stringify({ ok: true, status: "confirmed", participant: { id: (updated as Record<string, unknown>).id, name: (updated as Record<string, unknown>).name, email: (updated as Record<string, unknown>).email, created_at: (updated as Record<string, unknown>).created_at, attendance_confirmed: true, attendance_confirmed_at: (updated as Record<string, unknown>).attendance_confirmed_at, wallet_status: (updated as Record<string, unknown>).wallet_status } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } else {
+        // manual_remove
+        if (!participant.attendance_confirmed) {
+          return new Response(JSON.stringify({ ok: true, status: "already_pending", participant }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const { data: updated, error: updErr } = await supabase.from("event_registrations").update({ attendance_confirmed: false, attendance_confirmed_at: null, attendance_confirmed_by: null }).eq("id", participant.id).eq("attendance_confirmed", true).select("id, name, email, created_at, attendance_confirmed, attendance_confirmed_at, wallet_status").single();
+        if (updErr || !updated) {
+          return new Response(JSON.stringify({ error: "Não foi possível remover. Tente novamente." }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        return new Response(JSON.stringify({ ok: true, status: "removed", participant: { id: (updated as Record<string, unknown>).id, name: (updated as Record<string, unknown>).name, email: (updated as Record<string, unknown>).email, created_at: (updated as Record<string, unknown>).created_at, attendance_confirmed: false, attendance_confirmed_at: null, wallet_status: (updated as Record<string, unknown>).wallet_status } }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Erro interno." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+  }
+
+  const ticketIdRaw = String((body as Record<string, unknown>).ticket_id || (body as Record<string, unknown>).ticketId || "").trim().toUpperCase();
   if (!ticketIdRaw || !isValidTicketId(ticketIdRaw)) {
     return new Response(JSON.stringify({ error: "Credencial inválida." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }

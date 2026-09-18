@@ -210,6 +210,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
+          apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ action: "confirm", ticket_id: lastTicket }),
       });

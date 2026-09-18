@@ -167,7 +167,11 @@ export default function Admin() {
     setParticipantesLoading(true);
     setParticipantesError("");
     try {
-      const data = await selectRows("event_registrations", "order=created_at.desc&limit=1000", session.access_token);
+      const data = await selectRows(
+        "event_registrations",
+        "select=id,name,email,cpf_last4,created_at,attendance_confirmed,attendance_confirmed_at,attendance_confirmed_by,wallet_status,wallet_created_at,certificate_ready&order=created_at.desc&limit=1000",
+        session.access_token
+      );
       setParticipantes(data || []);
     } catch (e) {
       const msg = e.message || "";
@@ -210,15 +214,24 @@ export default function Admin() {
     };
   }, [session, adminTab]);
 
-  // Realtime para participantes — atualiza presença em tempo real entre celulares
+  // Realtime para participantes — atualiza presença em tempo real entre celulares (apenas campos seguros)
   useEffect(() => {
     if (!session || !supabase || adminTab !== "participantes") return;
     const channel = supabase
       .channel("event-registrations-realtime")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "event_registrations" }, (payload) => {
         const updated = payload.new;
-        if (!updated) return;
-        setParticipantes((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+        if (!updated || !updated.id) return;
+        const safe = {
+          attendance_confirmed: updated.attendance_confirmed,
+          attendance_confirmed_at: updated.attendance_confirmed_at,
+          attendance_confirmed_by: updated.attendance_confirmed_by,
+          wallet_status: updated.wallet_status,
+          wallet_created_at: updated.wallet_created_at,
+          certificate_ready: updated.certificate_ready,
+          updated_at: updated.updated_at,
+        };
+        setParticipantes((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...safe } : p)));
       })
       .subscribe();
     return () => {
@@ -391,20 +404,31 @@ export default function Admin() {
     setUpdatingId(p.id);
     setError("");
     try {
-      const next = !p.attendance_confirmed;
-      const patch = next
-        ? {
-            attendance_confirmed: true,
-            attendance_confirmed_at: new Date().toISOString(),
-            attendance_confirmed_by: session.user?.id || null,
-          }
-        : {
-            attendance_confirmed: false,
-            attendance_confirmed_at: null,
-            attendance_confirmed_by: null,
-          };
-      await updateRow("event_registrations", `id=eq.${p.id}`, patch, session.access_token);
-      setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...patch } : x)));
+      const action = !p.attendance_confirmed ? "manual_confirm" : "manual_remove";
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ action, registration_id: p.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao atualizar presença (${res.status})`);
+      const participant = data.participant || {};
+      setParticipantes((prev) =>
+        prev.map((x) =>
+          x.id === p.id
+            ? {
+                ...x,
+                attendance_confirmed: participant.attendance_confirmed ?? (action === "manual_confirm"),
+                attendance_confirmed_at: participant.attendance_confirmed_at ?? null,
+                attendance_confirmed_by: participant.attendance_confirmed_by ?? null,
+              }
+            : x
+        )
+      );
     } catch (e) {
       setError(e.message || "Falha ao atualizar presença.");
     } finally {
