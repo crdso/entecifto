@@ -16,6 +16,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   const audioCtxRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
   const isOpenRef = useRef(false);
+  const scannerSessionRef = useRef(0);
 
   const [manualMode, setManualMode] = useState(false);
   const [manualCode, setManualCode] = useState("");
@@ -111,10 +112,12 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
 
   const processTicket = async (ticketId) => {
     const tid = ticketId.trim().toUpperCase();
-    // Valid format already checked before queue, but double-check
+    const sessionId = scannerSessionRef.current;
     if (!/^ENTEC26-[A-F0-9]{12}$/.test(tid)) {
+      if (scannerSessionRef.current !== sessionId) return;
       showFeedback({ type: "invalid", message: "QR não reconhecido" });
       vibrate(100);
+      if (scannerSessionRef.current !== sessionId) return;
       processingRef.current = false;
       activeTicketRef.current = null;
       drainPendingQueue();
@@ -124,6 +127,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
     const now = Date.now();
     const last = recentScansRef.current.get(tid);
     if (last && now - last < 4000) {
+      if (scannerSessionRef.current !== sessionId) return;
       processingRef.current = false;
       activeTicketRef.current = null;
       drainPendingQueue();
@@ -148,6 +152,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         body: JSON.stringify({ action: "confirm", ticket_id: tid }),
       });
       const data = await res.json().catch(() => ({}));
+      if (scannerSessionRef.current !== sessionId) return;
       if (!res.ok) {
         if (res.status === 404) {
           showFeedback({ type: "notfound", message: "Credencial não encontrada" });
@@ -176,9 +181,11 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         if (onConfirmed && participant) onConfirmed(participant);
       }
     } catch (e) {
+      if (scannerSessionRef.current !== sessionId) return;
       showFeedback({ type: "error", message: "Falha de conexão" });
       vibrate(100);
     } finally {
+      if (scannerSessionRef.current !== sessionId) return;
       processingRef.current = false;
       activeTicketRef.current = null;
       drainPendingQueue();
@@ -281,6 +288,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   useEffect(() => {
     isOpenRef.current = open;
     if (open) {
+      scannerSessionRef.current += 1;
       // Fila vazia ao abrir
       pendingTicketRef.current = null;
       activeTicketRef.current = null;
@@ -289,6 +297,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
       const t = setTimeout(startCamera, 200);
       return () => clearTimeout(t);
     } else {
+      scannerSessionRef.current += 1;
       // Ao fechar: limpar fila e parar câmera
       pendingTicketRef.current = null;
       activeTicketRef.current = null;
