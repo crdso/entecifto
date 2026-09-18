@@ -1,29 +1,56 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { X, Flashlight, FlashlightOff, Keyboard, Search, Loader2, CheckCircle2, AlertTriangle, QrCode } from "lucide-react";
+import { X, Flashlight, FlashlightOff, Keyboard, Search, CheckCircle2, AlertTriangle } from "lucide-react";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabaseConfig";
 
 export default function CheckinScanner({ open, onClose, accessToken, onConfirmed }) {
   const videoRef = useRef(null);
   const controlsRef = useRef(null);
   const streamRef = useRef(null);
-  const processingRef = useRef(false);
   const readerRef = useRef(null);
+  const processingRef = useRef(false);
+  const recentScansRef = useRef(new Map());
+  const audioCtxRef = useRef(null);
+  const feedbackTimeoutRef = useRef(null);
 
   const [manualMode, setManualMode] = useState(false);
   const [manualCode, setManualCode] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | scanning | found | already | notfound | error
-  const [participant, setParticipant] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [confirming, setConfirming] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
-  const [lastTicket, setLastTicket] = useState("");
+  const [cameraError, setCameraError] = useState("");
+  const [feedback, setFeedback] = useState(null); // {type, name, message}
 
   const vibrate = (pattern) => {
     try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* ignore */ }
   };
+
+  const playBeep = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtxRef.current = ctx;
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.value = 0.12;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+      osc.stop(ctx.currentTime + 0.12);
+    } catch { /* ignore - vibração já é suficiente */ }
+  }, []);
+
+  const showFeedback = useCallback((fb) => {
+    setFeedback(fb);
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    feedbackTimeoutRef.current = setTimeout(() => setFeedback(null), 1800);
+  }, []);
 
   const stopCamera = useCallback(() => {
     try {
@@ -65,17 +92,27 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
     } catch { /* ignore */ }
   };
 
-  const lookupTicket = async (ticketId) => {
+  const confirmTicket = async (ticketId) => {
+    // Dedupe per ticket: ignore same ticket for 4s
+    const now = Date.now();
+    const last = recentScansRef.current.get(ticketId);
+    if (last && now - last < 4000) return;
+    if (processingRef.current) return;
+    processingRef.current = true;
+    recentScansRef.current.set(ticketId, now);
+    // Clean old entries
+    for (const [k, ts] of recentScansRef.current.entries()) {
+      if (now - ts > 10000) recentScansRef.current.delete(k);
+    }
+
     const tid = ticketId.trim().toUpperCase();
     if (!/^ENTEC26-[A-F0-9]{12}$/.test(tid)) {
-      setStatus("notfound");
-      setParticipant(null);
-      setErrorMsg("Formato inválido. Use ENTEC26-XXXXXXXXXXXX");
+      showFeedback({ type: "invalid", message: "QR não reconhecido" });
+      vibrate(100);
+      processingRef.current = false;
       return;
     }
-    setLastTicket(tid);
-    setStatus("found");
-    // actual lookup will be done via effect? We do lookup here
+
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/event-checkin`, {
         method: "POST",
@@ -84,81 +121,100 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
           Authorization: `Bearer ${accessToken}`,
           apikey: SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ action: "lookup", ticket_id: tid }),
+        body: JSON.stringify({ action: "confirm", ticket_id: tid }),
       });
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         if (res.status === 404) {
-          setStatus("notfound");
-          setErrorMsg(data.error || "Credencial não encontrada.");
-          vibrate(80);
-          return;
+          showFeedback({ type: "notfound", message: "Credencial não encontrada" });
+          vibrate(100);
+        } else {
+          showFeedback({ type: "error", message: data.error || "Falha ao confirmar" });
+          vibrate(100);
         }
-        throw new Error(data.error || `Erro ${res.status}`);
+        return;
       }
+
+      const participant = data.participant;
+      const name = participant?.name || tid;
+
       if (data.status === "already_confirmed") {
-        setStatus("already");
-        setParticipant(data.participant);
-        vibrate([70, 40, 70]);
+        const when = participant?.attendance_confirmed_at ? new Date(participant.attendance_confirmed_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+        showFeedback({ type: "already", name, message: when ? `Já credenciado às ${when.split(",")[1]?.trim() || when}` : "Já credenciado" });
+        vibrate(60);
+      } else if (data.status === "confirmed" || data.ok) {
+        showFeedback({ type: "confirmed", name, message: "Presença confirmada" });
+        vibrate([60, 30, 60]);
+        playBeep();
+        if (onConfirmed) onConfirmed(participant);
       } else {
-        setStatus("found");
-        setParticipant(data.participant);
-        vibrate(80);
+        showFeedback({ type: "confirmed", name, message: "Presença confirmada" });
+        vibrate([60, 30, 60]);
+        playBeep();
+        if (onConfirmed && participant) onConfirmed(participant);
       }
     } catch (e) {
-      setStatus("error");
-      setErrorMsg(e.message || "Falha ao consultar.");
+      showFeedback({ type: "error", message: "Falha de conexão" });
+      vibrate(100);
+    } finally {
+      // Libera para próxima leitura (outro QR pode ser lido imediatamente, mesmo QR só após cooldown)
+      setTimeout(() => {
+        processingRef.current = false;
+      }, 300);
     }
   };
 
-  const handleDetected = useCallback((ticketId) => {
-    if (processingRef.current) return;
-    processingRef.current = true;
-    stopCamera();
-    lookupTicket(ticketId);
+  const handleDetected = useCallback((raw) => {
+    const text = raw.trim().toUpperCase();
+    // Só processa se parece ticket, mas também precisa feedback para inválidos com dedupe
+    // Para inválidos, também faz dedupe para não spammar
+    if (!/^ENTEC26-[A-F0-9]{12}$/.test(text)) {
+      // QR aleatório fora do padrão: feedback discreto com dedupe
+      const now = Date.now();
+      const key = `invalid:${text.slice(0, 30)}`;
+      const last = recentScansRef.current.get(key);
+      if (last && now - last < 3000) return;
+      recentScansRef.current.set(key, now);
+      showFeedback({ type: "invalid", message: "QR não reconhecido" });
+      vibrate(100);
+      return;
+    }
+    confirmTicket(text);
   }, [accessToken]);
 
   const startCamera = useCallback(async () => {
     if (!open || !videoRef.current) return;
-    processingRef.current = false;
-    setStatus("scanning");
-    setParticipant(null);
-    setErrorMsg("");
-    setLastTicket("");
+    setCameraError("");
+    // Inicializa AudioContext no gesto do usuário (clique Escanear QR já ocorreu)
+    try {
+      if (!audioCtxRef.current && (window.AudioContext || window.webkitAudioContext)) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+      }
+    } catch { /* ignore */ }
     try {
       const reader = new BrowserQRCodeReader();
       readerRef.current = reader;
       const constraints = {
         video: {
           facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
         },
       };
-      // Use decodeFromConstraints if available, else fallback to decodeFromVideoDevice
       let controls;
       if (typeof reader.decodeFromConstraints === "function") {
-        controls = await reader.decodeFromConstraints(
-          constraints,
-          videoRef.current,
-          (result, err) => {
-            if (result) {
-              const text = result.getText().trim();
-              handleDetected(text);
-            }
-          }
-        );
-        // Try to capture stream for torch
+        controls = await reader.decodeFromConstraints(constraints, videoRef.current, (result) => {
+          if (result) handleDetected(result.getText());
+        });
         if (videoRef.current?.srcObject) {
           streamRef.current = videoRef.current.srcObject;
           setTimeout(checkTorch, 500);
         }
       } else {
-        controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
-          if (result) {
-            const text = result.getText().trim();
-            handleDetected(text);
-          }
+        controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
+          if (result) handleDetected(result.getText());
         });
         if (videoRef.current?.srcObject) {
           streamRef.current = videoRef.current.srcObject;
@@ -166,91 +222,46 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         }
       }
       controlsRef.current = controls;
-      // Also try to get stream via getUserMedia for torch detection if not yet
-      if (!streamRef.current && navigator.mediaDevices?.getUserMedia) {
-        try {
-          const s = await navigator.mediaDevices.getUserMedia(constraints);
-          // don't replace video stream, just check torch
-          s.getTracks().forEach((t) => t.stop());
-        } catch { /* ignore */ }
-      }
     } catch (e) {
-      setStatus("error");
-      setErrorMsg(e.message || "Não foi possível acessar a câmera.");
+      setCameraError(e.message || "Não foi possível acessar a câmera.");
     }
   }, [open, handleDetected, checkTorch]);
 
   useEffect(() => {
     if (open) {
-      // small delay to ensure video element mounted
-      const t = setTimeout(startCamera, 300);
+      const t = setTimeout(startCamera, 200);
       return () => clearTimeout(t);
     } else {
       stopCamera();
-      setStatus("idle");
-      setParticipant(null);
-      setErrorMsg("");
-      setLastTicket("");
+      setFeedback(null);
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+      recentScansRef.current.clear();
+      processingRef.current = false;
       setManualMode(false);
       setManualCode("");
-      processingRef.current = false;
+      setCameraError("");
     }
   }, [open, startCamera, stopCamera]);
 
   useEffect(() => {
-    return () => stopCamera();
+    return () => {
+      stopCamera();
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    };
   }, [stopCamera]);
 
-  const handleConfirm = async () => {
-    if (!lastTicket) return;
-    setConfirming(true);
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-checkin`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ action: "confirm", ticket_id: lastTicket }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
-      // success
-      const p = data.participant;
-      setParticipant(p);
-      setStatus("already");
-      vibrate([70, 40, 70]);
-      if (onConfirmed) onConfirmed(p);
-    } catch (e) {
-      setErrorMsg(e.message || "Falha ao confirmar.");
-      setStatus("error");
-    } finally {
-      setConfirming(false);
-    }
-  };
-
-  const handleManualLookup = () => {
+  const handleManualConfirm = () => {
     const code = manualCode.trim().toUpperCase();
     if (!code) return;
-    processingRef.current = true;
-    stopCamera();
-    lookupTicket(code);
-  };
-
-  const handleScanNext = () => {
-    processingRef.current = false;
-    setStatus("idle");
-    setParticipant(null);
-    setErrorMsg("");
-    setLastTicket("");
-    setManualMode(false);
+    confirmTicket(code);
     setManualCode("");
-    setTimeout(startCamera, 200);
   };
 
   const handleClose = () => {
     stopCamera();
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    setFeedback(null);
+    recentScansRef.current.clear();
     processingRef.current = false;
     onClose?.();
   };
@@ -258,180 +269,143 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   if (!open) return null;
 
   const content = (
-    <div className="fixed inset-0 z-[200] flex flex-col bg-void/95 backdrop-blur-xl overflow-hidden">
+    <div className="fixed inset-0 z-[200] flex flex-col bg-black overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[0.08] bg-[rgba(23,23,25,0.8)] backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/10 bg-black/80 backdrop-blur-md shrink-0">
         <div>
-          <h2 className="text-sm font-semibold tracking-[0.14em] uppercase text-data">Credenciamento</h2>
-          <p className="text-xs text-dim/60">Escaneie a credencial ENTEC 2026</p>
+          <h2 className="text-sm font-bold tracking-[0.14em] uppercase text-white">Credenciamento</h2>
+          <p className="text-xs text-white/60 hidden sm:block">Aponte para o QR da credencial</p>
         </div>
         <button
           onClick={handleClose}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-data hover:bg-white/[0.10] transition"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition"
           aria-label="Fechar"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center">
-        {status === "scanning" || status === "idle" ? (
-          <>
-            <div className="relative w-full max-w-[420px] aspect-[3/4] sm:aspect-[4/3] rounded-[24px] overflow-hidden border border-white/10 bg-black shadow-[0_24px_64px_rgba(0,0,0,0.6)]">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="h-full w-full object-cover"
-              />
-              {/* Moldura QR */}
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="relative w-[68%] aspect-square rounded-2xl border-2 border-white/90 shadow-[0_0_0_4000px_rgba(0,0,0,0.45)]">
-                  <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-xl" />
-                  <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-xl" />
-                  <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-xl" />
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-xl" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <QrCode className="h-8 w-8 text-white/60" />
-                  </div>
-                </div>
+      {/* Camera fullscreen */}
+      <div className="relative flex-1 w-full h-full bg-black overflow-hidden">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+
+        {/* Indicador sutil 4 cantos bem abertos, sem escurecer */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="relative w-[88%] max-w-[360px] aspect-square">
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/30 rounded-tl-lg" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr-lg" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl-lg" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/30 rounded-br-lg" />
+          </div>
+        </div>
+
+        {/* Texto discreto */}
+        <div className="pointer-events-none absolute bottom-20 sm:bottom-24 inset-x-0 flex justify-center px-4">
+          <p className="text-xs tracking-[0.12em] uppercase font-medium text-white/80 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+            Aponte para o QR da credencial
+          </p>
+        </div>
+
+        {/* Feedback flutuante sobre a câmera */}
+        {feedback && (
+          <div className="pointer-events-none absolute top-4 inset-x-0 flex justify-center px-4 z-10">
+            <div
+              className={`w-full max-w-[360px] rounded-2xl border backdrop-blur-xl px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.5)] flex items-center gap-3 animate-[fade-in_200ms_ease] ${
+                feedback.type === "confirmed"
+                  ? "bg-emerald-500 text-white border-emerald-400/50"
+                  : feedback.type === "already"
+                  ? "bg-amber-500 text-white border-amber-400/50"
+                  : feedback.type === "notfound" || feedback.type === "invalid"
+                  ? "bg-red-500/90 text-white border-red-400/50"
+                  : "bg-white/95 text-void border-white/20"
+              }`}
+            >
+              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${feedback.type === "confirmed" ? "bg-white/20" : feedback.type === "already" ? "bg-white/20" : "bg-white/20"}`}>
+                {feedback.type === "confirmed" ? <CheckCircle2 className="h-5 w-5" /> : feedback.type === "already" ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
               </div>
-              <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/70 to-transparent text-center">
-                <p className="text-xs tracking-[0.12em] uppercase font-medium text-white/90">Aponte para o QR da credencial</p>
-                <p className="text-[11px] text-white/60 mt-1">Apple Wallet / Google Wallet • ENTEC26-XXXXXXXXXXXX</p>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-sm font-bold leading-tight truncate">
+                  {feedback.type === "confirmed" ? "Presença confirmada" : feedback.type === "already" ? "Já credenciado" : feedback.type === "invalid" ? "QR não reconhecido" : feedback.type === "notfound" ? "Credencial não encontrada" : "Erro"}
+                </p>
+                <p className="text-xs font-medium opacity-90 truncate">{feedback.name || feedback.message}</p>
+                {feedback.type === "already" && feedback.message && (
+                  <p className="text-[11px] opacity-80 truncate">{feedback.message}</p>
+                )}
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="mt-4 flex items-center gap-2">
-              {torchSupported && (
-                <button
-                  onClick={toggleTorch}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-medium text-data hover:bg-white/[0.10] transition"
-                >
-                  {torchOn ? <FlashlightOff className="h-4 w-4" /> : <Flashlight className="h-4 w-4" />}
-                  {torchOn ? "Desligar lanterna" : "Lanterna"}
-                </button>
-              )}
+        {/* Erro câmera */}
+        {cameraError && (
+          <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/80">
+            <div className="w-full max-w-[360px] rounded-2xl bg-white p-6 text-center">
+              <p className="text-sm font-medium text-void">{cameraError}</p>
+              <p className="mt-2 text-xs text-dim/60">Verifique permissão da câmera e tente novamente.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Controles inferiores */}
+      <div className="shrink-0 border-t border-white/10 bg-black/90 backdrop-blur-md p-4 sm:p-4">
+        <div className="mx-auto w-full max-w-[420px] flex flex-col gap-3">
+          <div className="flex items-center justify-center gap-2">
+            {torchSupported && (
               <button
-                onClick={() => setManualMode((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-medium text-data hover:bg-white/[0.10] transition"
+                onClick={toggleTorch}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white hover:bg-white/20 transition"
               >
-                <Keyboard className="h-4 w-4" />
-                Digitar código
+                {torchOn ? <FlashlightOff className="h-4 w-4" /> : <Flashlight className="h-4 w-4" />}
+                {torchOn ? "Desligar lanterna" : "Lanterna"}
               </button>
-            </div>
-
-            {manualMode && (
-              <div className="mt-6 w-full max-w-[420px] rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <label className="block text-[11px] tracking-[0.14em] uppercase font-medium text-lavender/80 mb-2">Código da credencial</label>
-                <div className="flex gap-2">
-                  <input
-                    value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                    placeholder="ENTEC26-XXXXXXXXXXXX"
-                    className="flex-1 rounded-xl bg-void/60 border border-white/10 px-4 py-2.5 text-sm font-mono text-data placeholder:text-dim/40 outline-none focus:border-white/25"
-                    autoCapitalize="characters"
-                    spellCheck={false}
-                  />
-                  <button
-                    onClick={handleManualLookup}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-data text-void px-4 py-2.5 text-xs font-semibold uppercase tracking-wide hover:bg-white transition"
-                  >
-                    <Search className="h-4 w-4" />
-                    Consultar
-                  </button>
-                </div>
-              </div>
             )}
+            <button
+              onClick={() => setManualMode((v) => !v)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white hover:bg-white/20 transition"
+            >
+              <Keyboard className="h-4 w-4" />
+              Digitar código
+            </button>
+          </div>
 
-            <button
-              onClick={handleClose}
-              className="mt-6 inline-flex items-center justify-center w-full max-w-[420px] rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-medium tracking-[0.08em] uppercase text-data hover:bg-white/[0.08] transition"
-            >
-              Fechar
-            </button>
-          </>
-        ) : status === "found" && participant ? (
-          <div className="w-full max-w-[420px] rounded-[24px] border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-white/[0.02] backdrop-blur-md p-6 sm:p-7">
-            <div className="flex items-center gap-2 text-emerald-300 text-xs font-semibold tracking-[0.14em] uppercase">
-              <CheckCircle2 className="h-5 w-5" />
-              Credencial válida
-            </div>
-            <h3 className="mt-3 font-display font-bold text-xl sm:text-2xl text-data">{participant.name}</h3>
-            <p className="mt-1 text-sm text-dim/70 truncate">{participant.email}</p>
-            <p className="mt-2 text-xs text-dim/60">
-              Inscrito em: {participant.created_at ? new Date(participant.created_at).toLocaleString("pt-BR") : "—"}
-            </p>
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300">
-              Presença: Pendente
-            </div>
-            <div className="mt-6 grid gap-3">
+          {manualMode && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-3 flex gap-2">
+              <input
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                placeholder="ENTEC26-XXXXXXXXXXXX"
+                className="flex-1 min-w-0 rounded-xl bg-black/40 border border-white/10 px-4 py-2.5 text-sm font-mono text-white placeholder:text-white/40 outline-none focus:border-white/30"
+                autoCapitalize="characters"
+                spellCheck={false}
+              />
               <button
-                onClick={handleConfirm}
-                disabled={confirming}
-                className="inline-flex items-center justify-center gap-2 w-full rounded-full bg-emerald-500 text-white px-6 py-4 text-sm font-bold tracking-[0.08em] uppercase shadow-[0_8px_24px_rgba(16,185,129,0.35)] hover:bg-emerald-400 disabled:opacity-60 transition"
+                onClick={handleManualConfirm}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white text-black px-4 py-2.5 text-xs font-bold uppercase tracking-wide hover:bg-white/90 transition"
               >
-                {confirming ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                Confirmar presença
-              </button>
-              <button
-                onClick={handleScanNext}
-                className="inline-flex items-center justify-center w-full rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-medium tracking-[0.08em] uppercase text-data hover:bg-white/[0.08] transition"
-              >
-                Cancelar / Escanear outro
+                <Search className="h-4 w-4" />
+                Confirmar
               </button>
             </div>
-          </div>
-        ) : status === "already" && participant ? (
-          <div className="w-full max-w-[420px] rounded-[24px] border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md p-6 sm:p-7 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white">
-              <CheckCircle2 className="h-7 w-7" />
-            </div>
-            <h3 className="mt-4 font-display font-bold text-xl text-data">Já credenciado</h3>
-            <p className="mt-2 font-medium text-data">{participant.name}</p>
-            <p className="mt-1 text-sm text-dim/70">{participant.email}</p>
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 text-white px-3 py-1 text-xs font-bold tracking-wide">
-              Presença confirmada
-            </div>
-            <p className="mt-3 text-xs text-dim/60">
-              Confirmada em: {participant.attendance_confirmed_at ? new Date(participant.attendance_confirmed_at).toLocaleString("pt-BR") : "—"}
-            </p>
-            <button
-              onClick={handleScanNext}
-              className="mt-6 inline-flex items-center justify-center w-full rounded-full bg-data text-void px-6 py-3.5 text-sm font-semibold tracking-[0.08em] uppercase hover:bg-white transition"
-            >
-              Escanear próximo
-            </button>
-          </div>
-        ) : status === "notfound" ? (
-          <div className="w-full max-w-[420px] rounded-[24px] border border-red-500/20 bg-red-500/10 backdrop-blur-md p-6 sm:p-7 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 border border-red-500/30 text-red-300">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-            <h3 className="mt-4 font-display font-bold text-lg text-data">Credencial não reconhecida</h3>
-            <p className="mt-2 text-sm text-dim/70 leading-relaxed">Este QR não pertence a uma inscrição válida do ENTEC 2026.</p>
-            <p className="mt-2 text-xs text-dim/50">{errorMsg}</p>
-            <button
-              onClick={handleScanNext}
-              className="mt-6 inline-flex items-center justify-center w-full rounded-full bg-data text-void px-6 py-3.5 text-sm font-semibold tracking-[0.08em] uppercase hover:bg-white transition"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        ) : status === "error" ? (
-          <div className="w-full max-w-[420px] rounded-[24px] border border-red-500/20 bg-red-500/10 p-6 text-center">
-            <p className="text-sm text-red-300">{errorMsg || "Erro inesperado."}</p>
-            <button onClick={handleScanNext} className="mt-4 inline-flex items-center justify-center w-full rounded-full border border-white/15 bg-white/[0.04] px-6 py-3.5 text-sm font-medium uppercase text-data">
-              Tentar novamente
-            </button>
-          </div>
-        ) : null}
+          )}
+
+          <button
+            onClick={handleClose}
+            className="inline-flex items-center justify-center w-full rounded-full bg-white/10 border border-white/15 px-6 py-3 text-sm font-medium tracking-[0.08em] uppercase text-white hover:bg-white/20 transition"
+          >
+            Fechar
+          </button>
+        </div>
       </div>
     </div>
   );
 
-  // Portal to body to avoid z-index issues
   if (typeof document !== "undefined") {
     return createPortal(content, document.body);
   }
