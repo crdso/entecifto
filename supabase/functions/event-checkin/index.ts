@@ -86,10 +86,10 @@ Deno.serve(async (req) => {
 
   const action = String((body as Record<string, unknown>).action || "").trim().toLowerCase();
   const isQrAction = ["lookup", "confirm"].includes(action);
-  const isManualAction = ["manual_confirm", "manual_remove"].includes(action);
+  const isManualAction = ["manual_confirm", "manual_remove", "manual_delete"].includes(action);
 
   if (!action || (!isQrAction && !isManualAction)) {
-    return new Response(JSON.stringify({ error: "Ação inválida. Use lookup, confirm, manual_confirm ou manual_remove." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Ação inválida. Use lookup, confirm, manual_confirm, manual_remove ou manual_delete." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   // Manual actions via registration_id
@@ -100,6 +100,13 @@ Deno.serve(async (req) => {
     }
     try {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+      if (action === "manual_delete") {
+        const { error: delErr } = await supabase.from("event_registrations").delete().eq("id", registrationId);
+        if (delErr) {
+          return new Response(JSON.stringify({ error: "Não foi possível remover participante." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        return new Response(JSON.stringify({ ok: true, status: "deleted" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       const { data: reg, error: fetchErr } = await supabase.from("event_registrations").select("id, name, email, created_at, attendance_confirmed, attendance_confirmed_at, wallet_status").eq("id", registrationId).single();
       if (fetchErr || !reg) {
         return new Response(JSON.stringify({ error: "Participante não encontrado." }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });

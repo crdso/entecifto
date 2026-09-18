@@ -214,25 +214,43 @@ export default function Admin() {
     };
   }, [session, adminTab]);
 
-  // Realtime para participantes — atualiza presença em tempo real entre celulares (apenas campos seguros)
+  // Realtime para participantes — só colunas seguras atravessam a rede
   useEffect(() => {
     if (!session || !supabase || adminTab !== "participantes") return;
     const channel = supabase
       .channel("event-registrations-realtime")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "event_registrations" }, (payload) => {
-        const updated = payload.new;
-        if (!updated || !updated.id) return;
-        const safe = {
-          attendance_confirmed: updated.attendance_confirmed,
-          attendance_confirmed_at: updated.attendance_confirmed_at,
-          attendance_confirmed_by: updated.attendance_confirmed_by,
-          wallet_status: updated.wallet_status,
-          wallet_created_at: updated.wallet_created_at,
-          certificate_ready: updated.certificate_ready,
-          updated_at: updated.updated_at,
-        };
-        setParticipantes((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...safe } : p)));
-      })
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "event_registrations",
+          select: [
+            "id",
+            "attendance_confirmed",
+            "attendance_confirmed_at",
+            "attendance_confirmed_by",
+            "wallet_status",
+            "wallet_created_at",
+            "certificate_ready",
+            "updated_at",
+          ],
+        },
+        (payload) => {
+          const updated = payload.new;
+          if (!updated || !updated.id) return;
+          const safe = {
+            attendance_confirmed: updated.attendance_confirmed,
+            attendance_confirmed_at: updated.attendance_confirmed_at,
+            attendance_confirmed_by: updated.attendance_confirmed_by,
+            wallet_status: updated.wallet_status,
+            wallet_created_at: updated.wallet_created_at,
+            certificate_ready: updated.certificate_ready,
+            updated_at: updated.updated_at,
+          };
+          setParticipantes((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...safe } : p)));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -443,7 +461,17 @@ export default function Admin() {
     setUpdatingId(p.id);
     setError("");
     try {
-      await deleteRow("event_registrations", `id=eq.${p.id}`, session.access_token);
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ action: "manual_delete", registration_id: p.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao remover participante (${res.status})`);
       setParticipantes((prev) => prev.filter((x) => x.id !== p.id));
     } catch (e) {
       setError(e.message || "Falha ao remover participante.");
