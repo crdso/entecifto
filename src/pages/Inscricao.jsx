@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X } from "lucide-react";
+import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2 } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
 
 function maskCPF(v) {
   const d = String(v || "").replace(/\D/g, "").slice(0, 11);
@@ -56,6 +57,33 @@ function validateCertificado(f) {
   return e;
 }
 
+async function callEventRegister(payload) {
+  if (!SUPABASE_CONFIGURED) throw new Error("Supabase não configurado.");
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/event-register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+  if (!res.ok) {
+    const err = new Error(data?.error || data?.message || `Falha ao registrar (${res.status}).`);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+
 export default function Inscricao() {
   const { toast } = useToast();
   const [form, setForm] = useState({ nome: "", cpf: "", nascimento: "", email: "" });
@@ -64,12 +92,15 @@ export default function Inscricao() {
   const [certForm, setCertForm] = useState({ cpf: "", nascimento: "" });
   const [certErrors, setCertErrors] = useState({});
   const [showCertModal, setShowCertModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(null);
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const setCertField = (k, v) => setCertForm((f) => ({ ...f, [k]: v }));
 
-  const handleInscricao = (e) => {
+  const handleInscricao = async (e) => {
     e.preventDefault();
+    if (success) return;
     const errs = validateInscricao(form);
     setErrors(errs);
     setTouched({ nome: true, cpf: true, nascimento: true, email: true });
@@ -80,20 +111,30 @@ export default function Inscricao() {
       });
       return;
     }
-    // integração Supabase será adicionada na próxima etapa
-    console.log("[ENTEC 2026] Inscrição validada (dev) — payload:", {
-      nome: form.nome.trim(),
-      cpf: form.cpf.replace(/\D/g, ""),
-      nascimento: form.nascimento,
-      email: form.email.trim(),
-      timestamp: new Date().toISOString(),
-    });
-    console.log("// TODO: integração Supabase será adicionada na próxima etapa");
-
-    toast({
-      title: "Dados validados (modo desenvolvimento)",
-      description: "Sua inscrição ainda não foi salva. A integração com o Supabase será liberada na próxima etapa.",
-    });
+    setSubmitting(true);
+    try {
+      const result = await callEventRegister({
+        name: form.nome.trim(),
+        cpf: form.cpf,
+        birthDate: form.nascimento,
+        email: form.email.trim(),
+      });
+      setSuccess({ cpf_last4: result.cpf_last4 || form.cpf.replace(/\D/g, "").slice(-4) });
+      toast({
+        title: "Inscrição confirmada!",
+        description: "Sua participação no ENTEC 2026 foi registrada com sucesso.",
+      });
+    } catch (err) {
+      const status = err.status || 0;
+      let msg = err.message || "Não foi possível concluir sua inscrição. Tente novamente.";
+      if (status === 409) msg = "Já existe uma inscrição vinculada a este CPF.";
+      else if (status === 400 && /cpf/i.test(msg)) msg = "Informe um CPF válido.";
+      else if (status === 400 && /email/i.test(msg)) msg = "Informe um e-mail válido.";
+      else if (status >= 500) msg = "Não foi possível concluir sua inscrição. Tente novamente.";
+      toast({ title: "Não foi possível concluir", description: msg });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCertificado = (e) => {
@@ -158,113 +199,142 @@ export default function Inscricao() {
             <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(185,188,195,0.06),transparent_70%)] blur-2xl" />
 
             <div className="relative p-6 sm:p-8 md:p-10">
-              <div className="flex items-center gap-3 mb-7">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-void shadow-[0_4px_16px_rgba(255,255,255,0.18)]">
-                  <BadgeCheck className="h-5 w-5" />
-                </span>
-                <div>
-                  <h2 className="font-display font-semibold text-lg sm:text-xl text-data">Formulário de inscrição</h2>
-                  <p className="text-xs sm:text-sm text-dim/60">Preencha seus dados para garantir sua vaga.</p>
+              {success ? (
+                <div className="text-center py-6">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                    <CheckCircle2 className="h-8 w-8" />
+                  </div>
+                  <h2 className="mt-5 font-display font-bold text-2xl sm:text-3xl text-data">Inscrição confirmada!</h2>
+                  <p className="mt-3 text-sm sm:text-base text-dim/80 leading-relaxed max-w-lg mx-auto">
+                    Sua participação no ENTEC 2026 foi registrada com sucesso.
+                  </p>
+                  <p className="mt-2 text-xs tracking-[0.16em] uppercase text-lavender/70">23 e 24 de setembro · IFTO — Campus Araguatins</p>
+                  <div className="mt-6 mx-auto max-w-md rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 text-left">
+                    <p className="text-xs tracking-[0.16em] uppercase text-dim/60">CPF</p>
+                    <p className="mt-1 font-mono text-sm text-data">•••• •••• •••• {success.cpf_last4}</p>
+                    <p className="mt-3 text-xs leading-relaxed text-dim/60">Após o evento, o certificado poderá ser consultado utilizando CPF e data de nascimento.</p>
+                  </div>
+                  <p className="mt-6 text-xs text-dim/50">Você pode fechar esta página com segurança.</p>
                 </div>
-              </div>
-
-              <form onSubmit={handleInscricao} noValidate className="space-y-5">
-                <div>
-                  <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
-                    Nome completo
-                  </label>
-                  <input
-                    value={form.nome}
-                    onChange={(e) => setField("nome", e.target.value)}
-                    onBlur={() => setTouched((t) => ({ ...t, nome: true }))}
-                    placeholder="Seu nome completo"
-                    autoComplete="name"
-                    className={`${inputBase} ${errors.nome && touched.nome ? inputErr : inputOk}`}
-                  />
-                  {errors.nome && touched.nome && (
-                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
-                      <AlertCircle className="h-3.5 w-3.5" /> {errors.nome}
-                    </p>
-                  )}
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
-                      CPF
-                    </label>
-                    <input
-                      value={form.cpf}
-                      onChange={(e) => setField("cpf", maskCPF(e.target.value))}
-                      onBlur={() => setTouched((t) => ({ ...t, cpf: true }))}
-                      placeholder="000.000.000-00"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      className={`${inputBase} ${errors.cpf && touched.cpf ? inputErr : inputOk}`}
-                    />
-                    {errors.cpf && touched.cpf && (
-                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
-                        <AlertCircle className="h-3.5 w-3.5" /> {errors.cpf}
-                      </p>
-                    )}
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-7">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-void shadow-[0_4px_16px_rgba(255,255,255,0.18)]">
+                      <BadgeCheck className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h2 className="font-display font-semibold text-lg sm:text-xl text-data">Formulário de inscrição</h2>
+                      <p className="text-xs sm:text-sm text-dim/60">Preencha seus dados para garantir sua vaga.</p>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
-                      Data de nascimento
-                    </label>
-                    <input
-                      type="date"
-                      value={form.nascimento}
-                      onChange={(e) => setField("nascimento", e.target.value)}
-                      onBlur={() => setTouched((t) => ({ ...t, nascimento: true }))}
-                      className={`${inputBase} ${errors.nascimento && touched.nascimento ? inputErr : inputOk} [color-scheme:dark]`}
-                    />
-                    {errors.nascimento && touched.nascimento && (
-                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
-                        <AlertCircle className="h-3.5 w-3.5" /> {errors.nascimento}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                  <form onSubmit={handleInscricao} noValidate className="space-y-5">
+                    <div>
+                      <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                        Nome completo
+                      </label>
+                      <input
+                        value={form.nome}
+                        onChange={(e) => setField("nome", e.target.value)}
+                        onBlur={() => setTouched((t) => ({ ...t, nome: true }))}
+                        placeholder="Seu nome completo"
+                        autoComplete="name"
+                        disabled={submitting}
+                        className={`${inputBase} ${errors.nome && touched.nome ? inputErr : inputOk} disabled:opacity-60`}
+                      />
+                      {errors.nome && touched.nome && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                          <AlertCircle className="h-3.5 w-3.5" /> {errors.nome}
+                        </p>
+                      )}
+                    </div>
 
-                <div>
-                  <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
-                    E-mail
-                  </label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setField("email", e.target.value)}
-                    onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-                    placeholder="voce@exemplo.com"
-                    autoComplete="email"
-                    className={`${inputBase} ${errors.email && touched.email ? inputErr : inputOk}`}
-                  />
-                  {errors.email && touched.email && (
-                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
-                      <AlertCircle className="h-3.5 w-3.5" /> {errors.email}
+                    <div className="grid sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                          CPF
+                        </label>
+                        <input
+                          value={form.cpf}
+                          onChange={(e) => setField("cpf", maskCPF(e.target.value))}
+                          onBlur={() => setTouched((t) => ({ ...t, cpf: true }))}
+                          placeholder="000.000.000-00"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          disabled={submitting}
+                          className={`${inputBase} ${errors.cpf && touched.cpf ? inputErr : inputOk} disabled:opacity-60`}
+                        />
+                        {errors.cpf && touched.cpf && (
+                          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                            <AlertCircle className="h-3.5 w-3.5" /> {errors.cpf}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                          Data de nascimento
+                        </label>
+                        <input
+                          type="date"
+                          value={form.nascimento}
+                          onChange={(e) => setField("nascimento", e.target.value)}
+                          onBlur={() => setTouched((t) => ({ ...t, nascimento: true }))}
+                          disabled={submitting}
+                          className={`${inputBase} ${errors.nascimento && touched.nascimento ? inputErr : inputOk} [color-scheme:dark] disabled:opacity-60`}
+                        />
+                        {errors.nascimento && touched.nascimento && (
+                          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                            <AlertCircle className="h-3.5 w-3.5" /> {errors.nascimento}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                        E-mail
+                      </label>
+                      <input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setField("email", e.target.value)}
+                        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                        placeholder="voce@exemplo.com"
+                        autoComplete="email"
+                        disabled={submitting}
+                        className={`${inputBase} ${errors.email && touched.email ? inputErr : inputOk} disabled:opacity-60`}
+                      />
+                      {errors.email && touched.email && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                          <AlertCircle className="h-3.5 w-3.5" /> {errors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="group relative w-full mt-2 inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-data text-void font-semibold text-sm tracking-[0.14em] uppercase overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.6)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.45)] hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-energy"
+                    >
+                      <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
+                        <span className="absolute inset-y-0 -left-1/2 w-[55%] bg-gradient-to-r from-transparent via-white/50 to-transparent -skew-x-12 translate-x-[-120%] group-hover:translate-x-[240%] transition-transform duration-[1300ms] ease-[cubic-bezier(0.4,0,0.2,1)]" />
+                      </span>
+                      <span className="relative inline-flex items-center gap-2">
+                        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {submitting ? "Realizando inscrição..." : "Confirmar inscrição"}
+                      </span>
+                      {!submitting && <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />}
+                    </button>
+
+                    <p className="text-center text-[11px] leading-relaxed text-dim/45">
+                      Ao se inscrever você concorda com a Política de Privacidade do ENTEC 2026.
+                      <br />
+                      <span className="text-dim/60">Seus dados serão usados apenas para controle de presença e emissão de certificado.</span>
                     </p>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  className="group relative w-full mt-2 inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-data text-void font-semibold text-sm tracking-[0.14em] uppercase overflow-hidden shadow-[0_8px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.6)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.45)] hover:scale-[1.01] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-energy"
-                >
-                  <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
-                    <span className="absolute inset-y-0 -left-1/2 w-[55%] bg-gradient-to-r from-transparent via-white/50 to-transparent -skew-x-12 translate-x-[-120%] group-hover:translate-x-[240%] transition-transform duration-[1300ms] ease-[cubic-bezier(0.4,0,0.2,1)]" />
-                  </span>
-                  <span className="relative">Confirmar inscrição</span>
-                  <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </button>
-
-                <p className="text-center text-[11px] leading-relaxed text-dim/45">
-                  Ao se inscrever você concorda com a Política de Privacidade do ENTEC 2026.
-                  <br />
-                  <span className="text-dim/60">Seus dados serão usados apenas para controle de presença e emissão de certificado.</span>
-                </p>
-              </form>
+                  </form>
+                </>
+              )}
             </div>
           </motion.div>
 

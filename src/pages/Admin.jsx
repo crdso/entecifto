@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2 } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +73,10 @@ export default function Admin() {
   const [visitas, setVisitas] = useState([]);
   const [visitasLoading, setVisitasLoading] = useState(false);
   const [visitasError, setVisitasError] = useState("");
+  const [participantes, setParticipantes] = useState([]);
+  const [participantesLoading, setParticipantesLoading] = useState(false);
+  const [participantesError, setParticipantesError] = useState("");
+  const [participantesSearch, setParticipantesSearch] = useState("");
 
   const isAllowed = (user) => !ADMIN_EMAIL || (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
 
@@ -155,13 +159,35 @@ export default function Admin() {
     }
   };
 
+  const loadParticipantes = async () => {
+    if (!session?.access_token) return;
+    setParticipantesLoading(true);
+    setParticipantesError("");
+    try {
+      const data = await selectRows("event_registrations", "order=created_at.desc&limit=1000", session.access_token);
+      setParticipantes(data || []);
+    } catch (e) {
+      const msg = e.message || "";
+      if (msg.includes("event_registrations") || msg.includes("42P01") || msg.includes("404")) {
+        setParticipantesError("Tabela event_registrations ainda não criada. Rode supabase/event_registrations.sql no SQL Editor do Supabase.");
+      } else {
+        setParticipantesError(msg || "Falha ao carregar participantes.");
+      }
+      setParticipantes([]);
+    } finally {
+      setParticipantesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (session) {
       load();
       loadVisitas();
+      loadParticipantes();
     } else {
       setRows([]);
       setVisitas([]);
+      setParticipantes([]);
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -207,6 +233,19 @@ export default function Admin() {
     const unicos = new Set(visitas.map((v) => v.ip).filter(Boolean)).size;
     return { total: visitas.length, hoje, online, unicos };
   }, [visitas]);
+
+  const participantesStats = useMemo(() => {
+    const total = participantes.length;
+    const confirmados = participantes.filter((p) => p.attendance_confirmed).length;
+    const pendentes = total - confirmados;
+    return { total, confirmados, pendentes };
+  }, [participantes]);
+
+  const filteredParticipantes = useMemo(() => {
+    const q = participantesSearch.trim().toLowerCase();
+    if (!q) return participantes;
+    return participantes.filter((p) => (p.name || "").toLowerCase().includes(q) || (p.email || "").toLowerCase().includes(q));
+  }, [participantes, participantesSearch]);
 
   const financeiro = useMemo(() => {
     const pagos = rows.filter((r) => r.status === "pago");
@@ -326,6 +365,63 @@ export default function Admin() {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const toggleAttendance = async (p) => {
+    if (!session?.access_token) return;
+    setUpdatingId(p.id);
+    setError("");
+    try {
+      const next = !p.attendance_confirmed;
+      await updateRow("event_registrations", `id=eq.${p.id}`, { attendance_confirmed: next }, session.access_token);
+      setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, attendance_confirmed: next } : x)));
+    } catch (e) {
+      setError(e.message || "Falha ao atualizar presença.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteParticipante = async (p) => {
+    if (!session?.access_token) return;
+    const ok = window.confirm(`Remover participante "${p.name}" (${p.email})?\nEsta ação não pode ser desfeita.`);
+    if (!ok) return;
+    setUpdatingId(p.id);
+    setError("");
+    try {
+      await deleteRow("event_registrations", `id=eq.${p.id}`, session.access_token);
+      setParticipantes((prev) => prev.filter((x) => x.id !== p.id));
+    } catch (e) {
+      setError(e.message || "Falha ao remover participante.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const exportParticipantesCSV = () => {
+    const list = filteredParticipantes;
+    if (!list.length) {
+      setError("Nenhum participante para exportar.");
+      return;
+    }
+    const header = ["nome", "email", "cpf_last4", "attendance_confirmed", "created_at"];
+    const rowsCsv = list.map((p) => [
+      `"${String(p.name || "").replace(/"/g, '""')}"`,
+      `"${String(p.email || "").replace(/"/g, '""')}"`,
+      p.cpf_last4 || "",
+      p.attendance_confirmed ? "true" : "false",
+      p.created_at ? new Date(p.created_at).toISOString() : "",
+    ].join(","));
+    const csv = [header.join(","), ...rowsCsv].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `entec2026-participantes-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleDownload = (tipo) => {
@@ -520,12 +616,19 @@ export default function Admin() {
         </div>
 
         {/* Abas */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => setAdminTab("inscricoes")}
             className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${adminTab === "inscricoes" ? "border-signal bg-signal/20 text-data" : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"}`}
           >
             Inscrições
+          </button>
+          <button
+            onClick={() => { setAdminTab("participantes"); loadParticipantes(); }}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${adminTab === "participantes" ? "border-signal bg-signal/20 text-data" : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"}`}
+          >
+            <Users className="h-4 w-4" />
+            Participantes {participantesStats.total > 0 && <span className="ml-1 rounded-full bg-white/10 px-2 py-0.5 text-xs">{participantesStats.total}</span>}
           </button>
           <button
             onClick={() => { setAdminTab("visitas"); loadVisitas(); }}
@@ -767,6 +870,139 @@ export default function Admin() {
             </div>
             )}
           </div>
+          </>
+        ) : adminTab === "participantes" ? (
+          <>
+            {/* Participantes — event_registrations */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium flex items-center gap-1.5">
+                  <Users className="h-3 w-3" /> Total de inscritos
+                </div>
+                <div className="mt-1 text-2xl font-semibold text-data">{participantesStats.total}</div>
+              </div>
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-emerald-300/80 font-medium flex items-center gap-1.5">
+                  <BadgeCheck className="h-3 w-3" /> Presenças confirmadas
+                </div>
+                <div className="mt-1 text-2xl font-semibold text-emerald-300">{participantesStats.confirmados}</div>
+              </div>
+              <div className="rounded-2xl border border-signal/20 bg-gradient-to-b from-energy/30 to-void/60 backdrop-blur-md px-5 py-4">
+                <div className="text-[11px] uppercase tracking-[0.16em] text-lavender/70 font-medium">Pendentes</div>
+                <div className="mt-1 text-2xl font-semibold text-data">{participantesStats.pendentes}</div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+              <div className="relative sm:w-72 flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-dim/50" />
+                <input
+                  value={participantesSearch}
+                  onChange={(e) => setParticipantesSearch(e.target.value)}
+                  placeholder="Buscar por nome ou e-mail"
+                  className="w-full rounded-full bg-void/60 border border-signal/20 pl-10 pr-4 py-2 text-sm outline-none focus:border-signal/60"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={loadParticipantes} disabled={participantesLoading} className="gap-2 border-signal/20 text-data">
+                  <RefreshCw className={`h-4 w-4 ${participantesLoading ? "animate-spin" : ""}`} />
+                  Atualizar
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportParticipantesCSV} className="gap-2 border-emerald-500/30 text-data hover:bg-emerald-500/10">
+                  <Download className="h-4 w-4" />
+                  CSV
+                </Button>
+              </div>
+            </div>
+
+            {participantesError && (
+              <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                {participantesError}
+              </div>
+            )}
+            {error && (
+              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-signal/20 bg-void/40 overflow-hidden">
+              {participantesLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-6 w-6 animate-spin text-lavender" />
+                </div>
+              ) : filteredParticipantes.length === 0 ? (
+                <div className="py-20 text-center text-dim/50 text-sm">
+                  Nenhum participante encontrado.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[11px] uppercase tracking-[0.14em] text-lavender/70 border-b border-signal/15">
+                        <th className="px-4 py-3 font-medium">Nome</th>
+                        <th className="px-4 py-3 font-medium">E-mail</th>
+                        <th className="px-4 py-3 font-medium">CPF</th>
+                        <th className="px-4 py-3 font-medium">Inscrição</th>
+                        <th className="px-4 py-3 font-medium">Presença</th>
+                        <th className="px-4 py-3 font-medium">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredParticipantes.map((p) => (
+                        <tr key={p.id} className="border-b border-signal/10 hover:bg-signal/5">
+                          <td className="px-4 py-3 font-medium text-data">{p.name}</td>
+                          <td className="px-4 py-3 text-dim/80">{p.email}</td>
+                          <td className="px-4 py-3 text-dim/70 font-mono text-xs whitespace-nowrap" title={`Final ${p.cpf_last4}`}>
+                            •••.•••.{String(p.cpf_last4 || "").slice(0, 1)}-{String(p.cpf_last4 || "").slice(1)} <span className="text-dim/40">Final {p.cpf_last4}</span>
+                          </td>
+                          <td className="px-4 py-3 text-dim/60 whitespace-nowrap">
+                            {p.created_at ? moment(p.created_at).format("DD/MM/YYYY HH:mm") : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {p.attendance_confirmed ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Confirmada
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-signal/20 px-2.5 py-1 text-xs text-dim/60">
+                                <UserCheck className="h-3.5 w-3.5" />
+                                Pendente
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                onClick={() => toggleAttendance(p)}
+                                disabled={updatingId === p.id}
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all disabled:opacity-50 ${p.attendance_confirmed ? "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"}`}
+                              >
+                                {updatingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : p.attendance_confirmed ? <X className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                                {p.attendance_confirmed ? "Remover presença" : "Confirmar presença"}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteParticipante(p)}
+                                disabled={updatingId === p.id}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-500/20 disabled:opacity-50"
+                                title="Remover participante"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Remover
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-[11px] text-dim/40 text-center">
+              CPF exibido apenas com 4 últimos dígitos. Dados sensíveis protegidos por hash no banco.
+            </p>
           </>
         ) : (
           <>

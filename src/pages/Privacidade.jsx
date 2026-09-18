@@ -23,9 +23,9 @@ export default function Privacidade() {
           <h1 className="mt-4 font-display font-bold text-3xl sm:text-4xl text-data leading-tight">
             Política de Privacidade
           </h1>
-          <p className="mt-2 text-xs text-dim/40">Última atualização: agosto de 2026</p>
+          <p className="mt-2 text-xs text-dim/40">Última atualização: setembro de 2026</p>
           <p className="mt-4 text-sm text-dim/70 leading-relaxed max-w-2xl mx-auto">
-            Esta Política de Privacidade explica de forma simples como o site oficial do <strong className="text-data">ENTEC 2026</strong> trata as informações necessárias para seu funcionamento, para a aquisição da camisa oficial do evento e para o acompanhamento de acessos ao site.
+            Esta Política de Privacidade explica de forma simples como o site oficial do <strong className="text-data">ENTEC 2026</strong> trata as informações necessárias para seu funcionamento, para a inscrição no evento, para a aquisição da camisa oficial e para o acompanhamento de acessos ao site.
           </p>
         </motion.div>
 
@@ -52,7 +52,27 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">2. Pagamentos</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">2. Dados fornecidos na inscrição no evento</h2>
+            <p className="mt-2">Para participar do ENTEC 2026, poderão ser solicitados:</p>
+            <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>nome completo;</li>
+              <li>CPF;</li>
+              <li>data de nascimento;</li>
+              <li>e-mail.</li>
+            </ul>
+            <p className="mt-3">
+              Essas informações são utilizadas exclusivamente para registrar a inscrição, identificar o participante, controlar a participação no evento e possibilitar a futura consulta e emissão de certificado. O CPF e a data de nascimento são necessários para garantir que cada pessoa realize apenas uma inscrição e para permitir que o próprio participante consulte seu certificado posteriormente com os mesmos dados.
+            </p>
+            <p className="mt-2">
+              Para reduzir riscos, o sistema não armazena o CPF completo em texto aberto e não mantém a data de nascimento em formato legível no banco de dados. Em vez disso, o servidor gera identificadores criptográficos (hashes HMAC-SHA256 com chave secreta) a partir do CPF e da combinação CPF + data de nascimento, além de manter apenas os quatro últimos dígitos do CPF para conferência visual. Esses hashes permitem verificar a inscrição e a futura elegibilidade ao certificado sem expor os dados originais em consultas ou no painel público. O acesso aos dados é restrito à organização do evento por meio do painel administrativo autenticado.
+            </p>
+            <p className="mt-2">
+              Não são realizadas garantias absolutas de segurança, mas são adotadas medidas técnicas compatíveis com a finalidade e o porte do evento para limitar o acesso e proteger as informações.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-semibold text-data text-[15px]">3. Pagamentos</h2>
             <p className="mt-2">
               Os pagamentos são processados por meio do <strong className="text-data">Mercado Pago</strong>.
             </p>
@@ -68,7 +88,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">3. Dados de acesso ao site</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">4. Dados de acesso ao site</h2>
             <p className="mt-2">Para acompanhar o funcionamento e a utilização do site, podem ser registrados automaticamente:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
               <li>endereço IP;</li>
@@ -84,7 +104,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">4. Armazenamento e serviços utilizados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">5. Armazenamento e serviços utilizados</h2>
             <p className="mt-2">
               Os dados relacionados aos pedidos e aos registros técnicos do site são armazenados em serviços de infraestrutura utilizados para o funcionamento e administração da plataforma.
             </p>
@@ -95,10 +115,11 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">5. Compartilhamento de dados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">6. Compartilhamento de dados</h2>
             <p className="mt-2">Os dados pessoais não são vendidos ou comercializados.</p>
             <p className="mt-2">Eles poderão ser compartilhados apenas quando necessário para:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
+              <li>registrar e gerenciar a participação no evento, incluindo controle de presença e emissão de certificados;</li>
               <li>processar o pagamento;</li>
               <li>manter o funcionamento técnico do site;</li>
               <li>organizar e entregar as camisas;</li>
@@ -108,15 +129,15 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">6. Conservação dos dados</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">7. Conservação dos dados</h2>
             <p className="mt-2">
-              Os dados são mantidos somente pelo período necessário para as finalidades relacionadas ao evento, às compras, à entrega das camisas, à administração do site e ao cumprimento de eventuais obrigações aplicáveis.
+              Os dados são mantidos somente pelo período necessário para as finalidades relacionadas ao evento, às inscrições, ao controle de presença e emissão de certificados, às compras, à entrega das camisas, à administração do site e ao cumprimento de eventuais obrigações aplicáveis.
             </p>
-            <p className="mt-2">Pedidos com pagamento pendente ou não concluído poderão ser removidos após a expiração do processo de pagamento.</p>
+            <p className="mt-2">Pedidos com pagamento pendente ou não concluído poderão ser removidos após a expiração do processo de pagamento. As inscrições do evento são mantidas para viabilizar a conferência de presença e a posterior disponibilização de certificados.</p>
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">7. Segurança</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">8. Segurança</h2>
             <p className="mt-2">São utilizadas medidas técnicas para limitar o acesso aos dados e proteger as informações armazenadas.</p>
             <p className="mt-2">
               Ainda assim, nenhum sistema conectado à internet pode garantir segurança absoluta, e são adotadas medidas compatíveis com a finalidade e o porte deste site.
@@ -124,7 +145,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">8. Direitos do titular</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">9. Direitos do titular</h2>
             <p className="mt-2">
               Nos termos da Lei Geral de Proteção de Dados Pessoais — <strong className="text-data">LGPD (Lei nº 13.709/2018)</strong> — o titular poderá solicitar, quando aplicável:
             </p>
@@ -139,7 +160,7 @@ export default function Privacidade() {
           </section>
 
           <section>
-            <h2 className="font-display font-semibold text-data text-[15px]">9. Alterações nesta política</h2>
+            <h2 className="font-display font-semibold text-data text-[15px]">10. Alterações nesta política</h2>
             <p className="mt-2">Esta Política de Privacidade poderá ser atualizada caso ocorram mudanças relevantes no funcionamento do site ou na forma como os dados são tratados.</p>
             <p className="mt-2">A versão mais recente estará sempre disponível nesta página.</p>
           </section>
