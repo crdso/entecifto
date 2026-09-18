@@ -66,6 +66,13 @@ function randomHex(len: number): string {
   crypto.getRandomValues(bytes);
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, len).toUpperCase();
 }
+function resolvePassFastUrl(value: string): string {
+  if (!value) throw new Error("PassFast download URL ausente");
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+  return new URL(value, "https://api.passfa.st").toString();
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -199,6 +206,9 @@ Deno.serve(async (req) => {
           if (a) {
             appleId = (a.id as string) || (a.pass_id as string) || null;
             appleDownloadUrl = (a.download_url as string) || (a.url as string) || (a.downloadUrl as string) || null;
+            if (appleDownloadUrl) {
+              try { appleDownloadUrl = resolvePassFastUrl(appleDownloadUrl); } catch { /* keep original */ }
+            }
           }
           if (g) {
             googleId = (g.id as string) || (g.pass_id as string) || null;

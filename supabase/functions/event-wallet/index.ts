@@ -44,6 +44,13 @@ function randomHex(len: number): string {
   crypto.getRandomValues(bytes);
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, len).toUpperCase();
 }
+function resolvePassFastUrl(value: string): string {
+  if (!value) throw new Error("PassFast download URL ausente");
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+  return new URL(value, "https://api.passfa.st").toString();
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -138,8 +145,11 @@ Deno.serve(async (req) => {
         const dataObj = (passData as Record<string, unknown>).data as Record<string, unknown> | undefined;
         const a = apple || (dataObj?.apple as Record<string, unknown> | undefined);
         const g = google || (dataObj?.google as Record<string, unknown> | undefined);
+        let appleUrl: string | null = (a?.download_url as string) || null;
+        if (appleUrl) {
+          try { appleUrl = resolvePassFastUrl(appleUrl); } catch { /* keep original */ }
+        }
         const appleId = (a?.id as string) || null;
-        const appleUrl = (a?.download_url as string) || null;
         const googleId = (g?.id as string) || null;
         const googleUrl = (g?.save_url as string) || null;
         const hasApple = Boolean(appleId && appleUrl);
@@ -203,15 +213,24 @@ Deno.serve(async (req) => {
         if (!appleUrl) {
           return new Response(JSON.stringify({ error: "Apple Wallet não disponível." }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
+        let resolvedAppleUrl: string;
+        try {
+          resolvedAppleUrl = resolvePassFastUrl(appleUrl);
+        } catch {
+          return new Response(JSON.stringify({ error: "URL de download inválida." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
         if (!PASSFAST_API_KEY || !PASSFAST_PROJECT_ID) {
           return new Response(JSON.stringify({ error: "Credencial não configurada." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         // Fetch pkpass server-side
-        const passRes = await fetch(appleUrl, {
+        const passRes = await fetch(resolvedAppleUrl, {
           headers: {
             "Authorization": `Bearer ${PASSFAST_API_KEY}`,
             "X-App-Id": PASSFAST_PROJECT_ID,
           },
+        });
+        console.log("PassFast Apple download", {
+          status: passRes.status,
         });
         if (!passRes.ok) {
           return new Response(JSON.stringify({ error: "Falha ao obter Apple Wallet." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
