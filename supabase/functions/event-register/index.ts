@@ -71,7 +71,8 @@ function resolvePassFastUrl(value: string): string {
   if (/^https?:\/\//i.test(value)) {
     return value;
   }
-  return new URL(value, "https://api.passfa.st").toString();
+  const relative = value.replace(/^\/+/, "");
+  return new URL(relative, "https://api.passfa.st/functions/v1/").toString();
 }
 
 Deno.serve(async (req) => {

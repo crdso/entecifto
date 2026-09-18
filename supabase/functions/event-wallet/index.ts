@@ -49,7 +49,8 @@ function resolvePassFastUrl(value: string): string {
   if (/^https?:\/\//i.test(value)) {
     return value;
   }
-  return new URL(value, "https://api.passfa.st").toString();
+  const relative = value.replace(/^\/+/, "");
+  return new URL(relative, "https://api.passfa.st/functions/v1/").toString();
 }
 
 Deno.serve(async (req) => {
@@ -208,17 +209,12 @@ Deno.serve(async (req) => {
         // If request is from browser direct, redirect
         return new Response(null, { status: 302, headers: { ...corsHeaders, Location: googleUrl } });
       } else {
-        // Apple
-        const appleUrl = r.passfast_apple_download_url as string | null;
-        if (!appleUrl) {
+        // Apple — usar passfast_apple_id diretamente (SDK oficial)
+        const appleId = r.passfast_apple_id as string | null;
+        if (!appleId) {
           return new Response(JSON.stringify({ error: "Apple Wallet não disponível." }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        let resolvedAppleUrl: string;
-        try {
-          resolvedAppleUrl = resolvePassFastUrl(appleUrl);
-        } catch {
-          return new Response(JSON.stringify({ error: "URL de download inválida." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
+        const resolvedAppleUrl = `https://api.passfa.st/functions/v1/manage-passes/${encodeURIComponent(appleId)}/download`;
         if (!PASSFAST_API_KEY || !PASSFAST_PROJECT_ID) {
           return new Response(JSON.stringify({ error: "Credencial não configurada." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
