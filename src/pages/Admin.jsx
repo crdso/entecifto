@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X, AlertCircle, Wallet } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X, AlertCircle, Wallet, QrCode } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { selectRows, supabase, updateRow, deleteRow } from "@/lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabaseConfig";
+import CheckinScanner from "@/components/admin/CheckinScanner";
 import jsPDF from "jspdf";
 import {
   DropdownMenu,
@@ -78,6 +79,7 @@ export default function Admin() {
   const [participantesLoading, setParticipantesLoading] = useState(false);
   const [participantesError, setParticipantesError] = useState("");
   const [participantesSearch, setParticipantesSearch] = useState("");
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const isAllowed = (user) => !ADMIN_EMAIL || (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
 
@@ -201,6 +203,22 @@ export default function Admin() {
       .channel("visitas-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitas" }, (payload) => {
         setVisitas((prev) => [payload.new, ...prev].slice(0, 200));
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, adminTab]);
+
+  // Realtime para participantes — atualiza presença em tempo real entre celulares
+  useEffect(() => {
+    if (!session || !supabase || adminTab !== "participantes") return;
+    const channel = supabase
+      .channel("event-registrations-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "event_registrations" }, (payload) => {
+        const updated = payload.new;
+        if (!updated) return;
+        setParticipantes((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
       })
       .subscribe();
     return () => {
@@ -374,8 +392,19 @@ export default function Admin() {
     setError("");
     try {
       const next = !p.attendance_confirmed;
-      await updateRow("event_registrations", `id=eq.${p.id}`, { attendance_confirmed: next }, session.access_token);
-      setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, attendance_confirmed: next } : x)));
+      const patch = next
+        ? {
+            attendance_confirmed: true,
+            attendance_confirmed_at: new Date().toISOString(),
+            attendance_confirmed_by: session.user?.id || null,
+          }
+        : {
+            attendance_confirmed: false,
+            attendance_confirmed_at: null,
+            attendance_confirmed_by: null,
+          };
+      await updateRow("event_registrations", `id=eq.${p.id}`, patch, session.access_token);
+      setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, ...patch } : x)));
     } catch (e) {
       setError(e.message || "Falha ao atualizar presença.");
     } finally {
@@ -918,25 +947,34 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
-              <div className="relative sm:w-72 flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-dim/50" />
-                <input
-                  value={participantesSearch}
-                  onChange={(e) => setParticipantesSearch(e.target.value)}
-                  placeholder="Buscar por nome ou e-mail"
-                  className="w-full rounded-full bg-void/60 border border-signal/20 pl-10 pr-4 py-2 text-sm outline-none focus:border-signal/60"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={loadParticipantes} disabled={participantesLoading} className="gap-2 border-signal/20 text-data">
-                  <RefreshCw className={`h-4 w-4 ${participantesLoading ? "animate-spin" : ""}`} />
-                  Atualizar
-                </Button>
-                <Button variant="outline" size="sm" onClick={exportParticipantesCSV} className="gap-2 border-emerald-500/30 text-data hover:bg-emerald-500/10">
-                  <Download className="h-4 w-4" />
-                  CSV
-                </Button>
+            <div className="flex flex-col gap-3 mb-5">
+              <Button
+                onClick={() => setScannerOpen(true)}
+                className="w-full sm:w-auto gap-2 bg-white text-void hover:bg-white/90 font-bold text-sm px-6 py-3.5 sm:py-2.5 rounded-full shadow-[0_8px_24px_rgba(255,255,255,0.15)] hover:shadow-[0_8px_32px_rgba(255,255,255,0.25)] transition-all text-base sm:text-sm"
+              >
+                <QrCode className="h-5 w-5 sm:h-4 sm:w-4" />
+                Escanear QR
+              </Button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="relative sm:w-72 flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-dim/50" />
+                  <input
+                    value={participantesSearch}
+                    onChange={(e) => setParticipantesSearch(e.target.value)}
+                    placeholder="Buscar por nome ou e-mail"
+                    className="w-full rounded-full bg-void/60 border border-signal/20 pl-10 pr-4 py-2 text-sm outline-none focus:border-signal/60"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={loadParticipantes} disabled={participantesLoading} className="gap-2 border-signal/20 text-data">
+                    <RefreshCw className={`h-4 w-4 ${participantesLoading ? "animate-spin" : ""}`} />
+                    Atualizar
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={exportParticipantesCSV} className="gap-2 border-emerald-500/30 text-data hover:bg-emerald-500/10">
+                    <Download className="h-4 w-4" />
+                    CSV
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -1056,6 +1094,14 @@ export default function Admin() {
             <p className="mt-3 text-[11px] text-dim/40 text-center">
               CPF exibido apenas com 4 últimos dígitos. Dados sensíveis protegidos por hash no banco.
             </p>
+            <CheckinScanner
+              open={scannerOpen}
+              onClose={() => setScannerOpen(false)}
+              accessToken={session?.access_token}
+              onConfirmed={(p) => {
+                setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, attendance_confirmed: true, attendance_confirmed_at: p.attendance_confirmed_at } : x)));
+              }}
+            />
           </>
         ) : (
           <>
