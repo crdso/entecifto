@@ -10,16 +10,19 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   const streamRef = useRef(null);
   const readerRef = useRef(null);
   const processingRef = useRef(false);
+  const pendingTicketRef = useRef(null);
+  const activeTicketRef = useRef(null);
   const recentScansRef = useRef(new Map());
   const audioCtxRef = useRef(null);
   const feedbackTimeoutRef = useRef(null);
+  const isOpenRef = useRef(false);
 
   const [manualMode, setManualMode] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [cameraError, setCameraError] = useState("");
-  const [feedback, setFeedback] = useState(null); // {type, name, message}
+  const [feedback, setFeedback] = useState(null);
 
   const vibrate = (pattern) => {
     try { if (navigator.vibrate) navigator.vibrate(pattern); } catch { /* ignore */ }
@@ -43,7 +46,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
       osc.start();
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
       osc.stop(ctx.currentTime + 0.12);
-    } catch { /* ignore - vibração já é suficiente */ }
+    } catch { /* ignore */ }
   }, []);
 
   const showFeedback = useCallback((fb) => {
@@ -92,25 +95,46 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
     } catch { /* ignore */ }
   };
 
-  const confirmTicket = async (ticketId) => {
-    // Dedupe per ticket: ignore same ticket for 4s
-    const now = Date.now();
-    const last = recentScansRef.current.get(ticketId);
-    if (last && now - last < 4000) return;
-    if (processingRef.current) return;
-    processingRef.current = true;
-    recentScansRef.current.set(ticketId, now);
-    // Clean old entries
-    for (const [k, ts] of recentScansRef.current.entries()) {
-      if (now - ts > 10000) recentScansRef.current.delete(k);
+  const drainPendingQueue = useCallback(() => {
+    if (!isOpenRef.current) {
+      pendingTicketRef.current = null;
+      return;
     }
+    const next = pendingTicketRef.current;
+    if (!next) return;
+    pendingTicketRef.current = null;
+    // Process immediately without extra delay
+    setTimeout(() => {
+      if (isOpenRef.current) processTicket(next);
+    }, 50);
+  }, []);
 
+  const processTicket = async (ticketId) => {
     const tid = ticketId.trim().toUpperCase();
+    // Valid format already checked before queue, but double-check
     if (!/^ENTEC26-[A-F0-9]{12}$/.test(tid)) {
       showFeedback({ type: "invalid", message: "QR não reconhecido" });
       vibrate(100);
       processingRef.current = false;
+      activeTicketRef.current = null;
+      drainPendingQueue();
       return;
+    }
+
+    const now = Date.now();
+    const last = recentScansRef.current.get(tid);
+    if (last && now - last < 4000) {
+      processingRef.current = false;
+      activeTicketRef.current = null;
+      drainPendingQueue();
+      return;
+    }
+
+    processingRef.current = true;
+    activeTicketRef.current = tid;
+    recentScansRef.current.set(tid, now);
+    for (const [k, ts] of recentScansRef.current.entries()) {
+      if (now - ts > 10000) recentScansRef.current.delete(k);
     }
 
     try {
@@ -124,7 +148,6 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         body: JSON.stringify({ action: "confirm", ticket_id: tid }),
       });
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) {
         if (res.status === 404) {
           showFeedback({ type: "notfound", message: "Credencial não encontrada" });
@@ -135,10 +158,8 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
         }
         return;
       }
-
       const participant = data.participant;
       const name = participant?.name || tid;
-
       if (data.status === "already_confirmed") {
         const when = participant?.attendance_confirmed_at ? new Date(participant.attendance_confirmed_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
         showFeedback({ type: "already", name, message: when ? `Já credenciado às ${when.split(",")[1]?.trim() || when}` : "Já credenciado" });
@@ -158,19 +179,50 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
       showFeedback({ type: "error", message: "Falha de conexão" });
       vibrate(100);
     } finally {
-      // Libera para próxima leitura (outro QR pode ser lido imediatamente, mesmo QR só após cooldown)
-      setTimeout(() => {
-        processingRef.current = false;
-      }, 300);
+      processingRef.current = false;
+      activeTicketRef.current = null;
+      drainPendingQueue();
+    }
+  };
+
+  const queueTicket = (ticketId) => {
+    const tid = ticketId.trim().toUpperCase();
+    if (!/^ENTEC26-[A-F0-9]{12}$/.test(tid)) {
+      // QR inválido não entra na fila
+      const now = Date.now();
+      const key = `invalid:${tid.slice(0, 30)}`;
+      const last = recentScansRef.current.get(key);
+      if (last && now - last < 3000) return;
+      recentScansRef.current.set(key, now);
+      showFeedback({ type: "invalid", message: "QR não reconhecido" });
+      vibrate(100);
+      return;
+    }
+
+    // Não enfileirar mesmo QR que está ativo
+    if (tid === activeTicketRef.current) return;
+    // Não duplicar se já está pendente
+    if (tid === pendingTicketRef.current) return;
+
+    // Respeitar dedupe (cooldown) antes de enfileirar
+    const now = Date.now();
+    const last = recentScansRef.current.get(tid);
+    if (last && now - last < 4000) return;
+
+    if (processingRef.current) {
+      // Fila de apenas 1
+      if (pendingTicketRef.current) return;
+      pendingTicketRef.current = tid;
+      // Não registrar no recentScans ainda — só quando começar a processar
+    } else {
+      processTicket(tid);
     }
   };
 
   const handleDetected = useCallback((raw) => {
     const text = raw.trim().toUpperCase();
-    // Só processa se parece ticket, mas também precisa feedback para inválidos com dedupe
-    // Para inválidos, também faz dedupe para não spammar
+    // QR válido ENTEC entra na fila/processamento, inválido tem feedback discreto com dedupe
     if (!/^ENTEC26-[A-F0-9]{12}$/.test(text)) {
-      // QR aleatório fora do padrão: feedback discreto com dedupe
       const now = Date.now();
       const key = `invalid:${text.slice(0, 30)}`;
       const last = recentScansRef.current.get(key);
@@ -180,13 +232,12 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
       vibrate(100);
       return;
     }
-    confirmTicket(text);
+    queueTicket(text);
   }, [accessToken]);
 
   const startCamera = useCallback(async () => {
     if (!open || !videoRef.current) return;
     setCameraError("");
-    // Inicializa AudioContext no gesto do usuário (clique Escanear QR já ocorreu)
     try {
       if (!audioCtxRef.current && (window.AudioContext || window.webkitAudioContext)) {
         audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -228,15 +279,24 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   }, [open, handleDetected, checkTorch]);
 
   useEffect(() => {
+    isOpenRef.current = open;
     if (open) {
+      // Fila vazia ao abrir
+      pendingTicketRef.current = null;
+      activeTicketRef.current = null;
+      processingRef.current = false;
+      recentScansRef.current.clear();
       const t = setTimeout(startCamera, 200);
       return () => clearTimeout(t);
     } else {
+      // Ao fechar: limpar fila e parar câmera
+      pendingTicketRef.current = null;
+      activeTicketRef.current = null;
+      processingRef.current = false;
+      recentScansRef.current.clear();
       stopCamera();
       setFeedback(null);
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-      recentScansRef.current.clear();
-      processingRef.current = false;
       setManualMode(false);
       setManualCode("");
       setCameraError("");
@@ -245,6 +305,10 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
 
   useEffect(() => {
     return () => {
+      isOpenRef.current = false;
+      pendingTicketRef.current = null;
+      activeTicketRef.current = null;
+      processingRef.current = false;
       stopCamera();
       if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     };
@@ -253,16 +317,20 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   const handleManualConfirm = () => {
     const code = manualCode.trim().toUpperCase();
     if (!code) return;
-    confirmTicket(code);
+    // Reutiliza mesma fila para consistência
+    queueTicket(code);
     setManualCode("");
   };
 
   const handleClose = () => {
+    isOpenRef.current = false;
+    pendingTicketRef.current = null;
+    activeTicketRef.current = null;
+    processingRef.current = false;
+    recentScansRef.current.clear();
     stopCamera();
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     setFeedback(null);
-    recentScansRef.current.clear();
-    processingRef.current = false;
     onClose?.();
   };
 
