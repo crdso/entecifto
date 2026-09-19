@@ -17,6 +17,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   const feedbackTimeoutRef = useRef(null);
   const isOpenRef = useRef(false);
   const scannerSessionRef = useRef(0);
+  const pendingDrainTimeoutRef = useRef(null);
 
   const [manualMode, setManualMode] = useState(false);
   const [manualCode, setManualCode] = useState("");
@@ -97,6 +98,7 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   };
 
   const drainPendingQueue = useCallback(() => {
+    const sessionId = scannerSessionRef.current;
     if (!isOpenRef.current) {
       pendingTicketRef.current = null;
       return;
@@ -104,9 +106,11 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
     const next = pendingTicketRef.current;
     if (!next) return;
     pendingTicketRef.current = null;
-    // Process immediately without extra delay
-    setTimeout(() => {
-      if (isOpenRef.current) processTicket(next);
+    pendingDrainTimeoutRef.current = setTimeout(() => {
+      if (!isOpenRef.current || scannerSessionRef.current !== sessionId) {
+        return;
+      }
+      processTicket(next);
     }, 50);
   }, []);
 
@@ -289,6 +293,10 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
     isOpenRef.current = open;
     if (open) {
       scannerSessionRef.current += 1;
+      if (pendingDrainTimeoutRef.current) {
+        clearTimeout(pendingDrainTimeoutRef.current);
+        pendingDrainTimeoutRef.current = null;
+      }
       // Fila vazia ao abrir
       pendingTicketRef.current = null;
       activeTicketRef.current = null;
@@ -298,6 +306,10 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
       return () => clearTimeout(t);
     } else {
       scannerSessionRef.current += 1;
+      if (pendingDrainTimeoutRef.current) {
+        clearTimeout(pendingDrainTimeoutRef.current);
+        pendingDrainTimeoutRef.current = null;
+      }
       // Ao fechar: limpar fila e parar câmera
       pendingTicketRef.current = null;
       activeTicketRef.current = null;
@@ -315,6 +327,10 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
   useEffect(() => {
     return () => {
       isOpenRef.current = false;
+      if (pendingDrainTimeoutRef.current) {
+        clearTimeout(pendingDrainTimeoutRef.current);
+        pendingDrainTimeoutRef.current = null;
+      }
       pendingTicketRef.current = null;
       activeTicketRef.current = null;
       processingRef.current = false;
@@ -333,6 +349,10 @@ export default function CheckinScanner({ open, onClose, accessToken, onConfirmed
 
   const handleClose = () => {
     isOpenRef.current = false;
+    if (pendingDrainTimeoutRef.current) {
+      clearTimeout(pendingDrainTimeoutRef.current);
+      pendingDrainTimeoutRef.current = null;
+    }
     pendingTicketRef.current = null;
     activeTicketRef.current = null;
     processingRef.current = false;
