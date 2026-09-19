@@ -149,15 +149,16 @@ Deno.serve(async (req) => {
     const pageWidth = PAGE_WIDTH;
     const pageHeight = PAGE_HEIGHT;
 
-    const maxTextWidth = pageWidth * 0.58;
-    const DEFAULT_FONT_SIZE = 26;
+    const MAX_NAME_WIDTH_CM = 18.62;
+    const MAX_NAME_WIDTH_PT = MAX_NAME_WIDTH_CM * 28.3464567;
+    const CANVA_BASE_FONT_SIZE = 28;
     const MAX_FONT_SIZE = 30;
     const MIN_FONT_SIZE = 13;
-    let fontSize = DEFAULT_FONT_SIZE;
+    let fontSize = CANVA_BASE_FONT_SIZE;
     if (fontSize > MAX_FONT_SIZE) fontSize = MAX_FONT_SIZE;
 
     let textWidth = font.widthOfTextAtSize(name, fontSize);
-    while (textWidth > maxTextWidth && fontSize > MIN_FONT_SIZE) {
+    while (textWidth > MAX_NAME_WIDTH_PT && fontSize > MIN_FONT_SIZE) {
       fontSize -= 0.5;
       textWidth = font.widthOfTextAtSize(name, fontSize);
     }
