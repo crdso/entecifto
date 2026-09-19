@@ -81,7 +81,10 @@ export default function Admin() {
   const [participantesSearch, setParticipantesSearch] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
 
-  const isAllowed = (user) => !ADMIN_EMAIL || (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
+  const isAllowed = (user) => {
+    if (!ADMIN_EMAIL) return false;
+    return (user?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -97,7 +100,11 @@ export default function Admin() {
       if (!isMounted) return;
       let finalSession = currentSession;
       if (finalSession && !isAllowed(finalSession.user)) {
-        setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+        if (!ADMIN_EMAIL) {
+          setError("Painel administrativo não configurado.");
+        } else {
+          setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+        }
         await supabase.auth.signOut();
         finalSession = null;
       }
@@ -111,7 +118,11 @@ export default function Admin() {
       ? supabase.auth.onAuthStateChange(async (_event, currentSession) => {
           if (!isMounted) return;
           if (currentSession && !isAllowed(currentSession.user)) {
-            setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+            if (!ADMIN_EMAIL) {
+              setError("Painel administrativo não configurado.");
+            } else {
+              setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+            }
             await supabase.auth.signOut();
             setSession(null);
           } else {
@@ -350,7 +361,11 @@ export default function Admin() {
     if (signInError) {
       setError(signInError.message || "Falha ao entrar.");
     } else if (!isAllowed(data.user)) {
-      setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+      if (!ADMIN_EMAIL) {
+        setError("Painel administrativo não configurado.");
+      } else {
+        setError("Acesso restrito. Esta conta não tem permissão para o painel administrativo.");
+      }
       await supabase.auth.signOut();
     } else {
       setSession(data.session);

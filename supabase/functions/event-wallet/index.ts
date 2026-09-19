@@ -72,8 +72,11 @@ Deno.serve(async (req) => {
       if (authErr || !user) {
         return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const adminEmail = (Deno.env.get("ADMIN_EMAIL") || Deno.env.get("VITE_ADMIN_EMAIL") || "").toLowerCase();
-      if (adminEmail && user.email?.toLowerCase() !== adminEmail) {
+      const ADMIN_EMAIL = (Deno.env.get("ADMIN_EMAIL") || "").trim().toLowerCase();
+      if (!ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ error: "Função não configurada." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if ((user.email || "").trim().toLowerCase() !== ADMIN_EMAIL) {
         return new Response(JSON.stringify({ error: "Acesso restrito." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       const body = await req.json().catch(() => ({} as Record<string, unknown>));
