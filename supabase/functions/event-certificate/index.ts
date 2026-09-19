@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Não foi possível gerar o certificado agora. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // Generate PDF — usa apenas assets internos da Edge Function
+  // Generate PDF — A4 horizontal, template 3000×2121 cobre página toda, nome calibrado visualmente
   try {
     const templateBytes = await Deno.readFile(new URL("./assets/CERTIFICADO.jpg", import.meta.url));
     const fontBytes = await Deno.readFile(new URL("./assets/AbrilFatface-Regular.ttf", import.meta.url));
@@ -132,32 +132,36 @@ Deno.serve(async (req) => {
       : await pdfDoc.embedPng(templateBytes);
     const font = await pdfDoc.embedFont(fontBytes);
 
-    const imgDims = templateImage.scale(1);
-    const page = pdfDoc.addPage([imgDims.width, imgDims.height]);
+    // A4 horizontal
+    const PAGE_WIDTH = 841.89;
+    const PAGE_HEIGHT = 595.28;
+    const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
     page.drawImage(templateImage, {
       x: 0,
       y: 0,
-      width: imgDims.width,
-      height: imgDims.height,
+      width: PAGE_WIDTH,
+      height: PAGE_HEIGHT,
     });
 
-    // Nome centralizado no espaço vazio (referência Canva X:72.34mm Y:104.66mm → 72% da altura a partir da base, verificado com template 6250×4419)
-    const NAME_CENTER_Y_RATIO = 0.72;
-    const pageWidth = imgDims.width;
-    const pageHeight = imgDims.height;
+    // Posição calibrada visualmente com o template oficial — 47,3% da altura a partir da base
+    const NAME_CENTER_Y_RATIO = 0.473;
+    const pageWidth = PAGE_WIDTH;
+    const pageHeight = PAGE_HEIGHT;
 
     const maxTextWidth = pageWidth * 0.58;
-    let fontSize = Math.round(pageWidth * 0.031);
-    const minFontSize = 42;
-    if (fontSize < minFontSize) fontSize = minFontSize;
-    if (fontSize > 110) fontSize = 110;
+    const DEFAULT_FONT_SIZE = 26;
+    const MAX_FONT_SIZE = 30;
+    const MIN_FONT_SIZE = 13;
+    let fontSize = DEFAULT_FONT_SIZE;
+    if (fontSize > MAX_FONT_SIZE) fontSize = MAX_FONT_SIZE;
 
     let textWidth = font.widthOfTextAtSize(name, fontSize);
-    while (textWidth > maxTextWidth && fontSize > minFontSize) {
-      fontSize -= 2;
+    while (textWidth > maxTextWidth && fontSize > MIN_FONT_SIZE) {
+      fontSize -= 0.5;
       textWidth = font.widthOfTextAtSize(name, fontSize);
     }
+    if (fontSize < MIN_FONT_SIZE) fontSize = MIN_FONT_SIZE;
 
     const textHeight = font.heightAtSize(fontSize);
     const x = (pageWidth - textWidth) / 2;
