@@ -94,6 +94,7 @@ export default function Inscricao() {
   const [certErrors, setCertErrors] = useState({});
   const [showCertModal, setShowCertModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [certSubmitting, setCertSubmitting] = useState(false);
   const [success, setSuccess] = useState(null);
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -157,7 +158,7 @@ export default function Inscricao() {
     }
   };
 
-  const handleCertificado = (e) => {
+  const handleCertificado = async (e) => {
     e.preventDefault();
     const errs = validateCertificado(certForm);
     setCertErrors(errs);
@@ -169,7 +170,50 @@ export default function Inscricao() {
       }, 0);
       return;
     }
-    setShowCertModal(true);
+    setCertSubmitting(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-certificate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ cpf: certForm.cpf, birthDate: certForm.nascimento }),
+      });
+      if (res.ok && res.headers.get("content-type")?.includes("application/pdf")) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const disposition = res.headers.get("content-disposition") || "";
+        let filename = "certificado-entec-2026.pdf";
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "Certificado encontrado", description: "Seu certificado foi gerado com sucesso." });
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      const msg = data.error || "";
+      if (res.status === 404) {
+        toast({ title: "Não encontramos uma participação com esses dados.", description: "Verifique CPF e data de nascimento." });
+      } else if (res.status === 403 && msg.includes("presença")) {
+        toast({ title: "Não há presença confirmada para esta participação.", description: "Sua presença ainda não foi confirmada pela organização." });
+      } else if (res.status === 403) {
+        toast({ title: "Seu certificado ainda não foi liberado.", description: "Aguarde a liberação pela organização." });
+      } else {
+        toast({ title: "Não foi possível gerar o certificado agora. Tente novamente.", description: msg || "" });
+      }
+    } catch {
+      toast({ title: "Não foi possível gerar o certificado agora. Tente novamente." });
+    } finally {
+      setCertSubmitting(false);
+    }
   };
 
   const handleAppleWallet = () => {
@@ -471,10 +515,11 @@ export default function Inscricao() {
 
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-md text-data text-sm font-medium tracking-[0.10em] uppercase hover:bg-white/[0.08] hover:border-white/25 hover:text-white transition-all"
+                  disabled={certSubmitting}
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-md text-data text-sm font-medium tracking-[0.10em] uppercase hover:bg-white/[0.08] hover:border-white/25 hover:text-white transition-all disabled:opacity-60"
                 >
-                  <Award className="h-4 w-4" />
-                  Acessar certificado
+                  {certSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Award className="h-4 w-4" />}
+                  {certSubmitting ? "Buscando certificado..." : "Acessar certificado"}
                 </button>
               </form>
             </div>

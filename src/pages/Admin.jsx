@@ -519,6 +519,31 @@ export default function Admin() {
     }
   };
 
+  const toggleCertificate = async (p) => {
+    if (!session?.access_token) return;
+    setUpdatingId(p.id);
+    setError("");
+    try {
+      const enabled = !p.certificate_ready;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-certificate-admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ registration_id: p.id, enabled }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao ${enabled ? "liberar" : "remover"} certificado (${res.status})`);
+      setParticipantes((prev) => prev.map((x) => (x.id === p.id ? { ...x, certificate_ready: enabled } : x)));
+    } catch (e) {
+      setError(e.message || "Falha ao atualizar certificado.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const exportParticipantesCSV = () => {
     const list = filteredParticipantes;
     if (!list.length) {
@@ -1076,6 +1101,7 @@ export default function Admin() {
                         <th className="px-4 py-3 font-medium">Inscrição</th>
                         <th className="px-4 py-3 font-medium">Presença</th>
                         <th className="px-4 py-3 font-medium">Credencial</th>
+                        <th className="px-4 py-3 font-medium">Certificado</th>
                         <th className="px-4 py-3 font-medium">Ação</th>
                       </tr>
                     </thead>
@@ -1129,6 +1155,25 @@ export default function Admin() {
                                 Tentar novamente
                               </button>
                             )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {p.certificate_ready ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300">
+                                <BadgeCheck className="h-3 w-3" /> Liberado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-dim/60">
+                                <X className="h-3 w-3" /> Não liberado
+                              </span>
+                            )}
+                            <button
+                              onClick={() => toggleCertificate(p)}
+                              disabled={updatingId === p.id}
+                              className={`mt-1.5 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all disabled:opacity-50 ${p.certificate_ready ? "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"}`}
+                            >
+                              {updatingId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : p.certificate_ready ? <X className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
+                              {p.certificate_ready ? "Remover" : "Liberar"}
+                            </button>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap items-center gap-2">
