@@ -110,6 +110,12 @@ export default function Inscricao() {
         title: "Verifique os campos",
         description: "Corrija os campos destacados antes de continuar.",
       });
+      setTimeout(() => {
+        if (errs.nome) document.getElementById("entec-name")?.focus();
+        else if (errs.cpf) document.getElementById("entec-cpf")?.focus();
+        else if (errs.nascimento) document.getElementById("entec-birth-date")?.focus();
+        else if (errs.email) document.getElementById("entec-email")?.focus();
+      }, 0);
       return;
     }
     setSubmitting(true);
@@ -157,6 +163,10 @@ export default function Inscricao() {
     setCertErrors(errs);
     if (Object.keys(errs).length) {
       toast({ title: "Verifique os campos", description: "CPF e data de nascimento são obrigatórios." });
+      setTimeout(() => {
+        if (errs.cpf) document.getElementById("certificate-cpf")?.focus();
+        else if (errs.nascimento) document.getElementById("certificate-birth-date")?.focus();
+      }, 0);
       return;
     }
     setShowCertModal(true);
@@ -175,7 +185,7 @@ export default function Inscricao() {
   };
 
   const inputBase =
-    "block w-full min-w-0 max-w-full box-border rounded-2xl bg-void/60 border px-4 py-3.5 text-base sm:text-[15px] text-data placeholder:text-dim/40 outline-none transition-all overflow-hidden text-ellipsis [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:opacity-70";
+    "block w-full min-w-0 max-w-full box-border rounded-2xl bg-void/60 border px-4 py-3.5 text-base sm:text-[15px] text-data placeholder:text-dim/70 outline-none transition-all overflow-hidden text-ellipsis [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:opacity-70";
   const inputOk = "border-white/10 focus:border-white/25 focus:bg-void/80";
   const inputErr = "border-red-500/40 focus:border-red-500/60 bg-red-500/5";
 
@@ -283,20 +293,23 @@ export default function Inscricao() {
 
                   <form onSubmit={handleInscricao} noValidate className="space-y-5 min-w-0 w-full">
                     <div className="min-w-0 w-full">
-                      <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                      <label htmlFor="entec-name" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                         Nome completo
                       </label>
                       <input
+                        id="entec-name"
                         value={form.nome}
                         onChange={(e) => setField("nome", e.target.value)}
                         onBlur={() => setTouched((t) => ({ ...t, nome: true }))}
                         placeholder="Seu nome completo"
                         autoComplete="name"
                         disabled={submitting}
+                        aria-invalid={Boolean(errors.nome && touched.nome)}
+                        aria-describedby={errors.nome && touched.nome ? "entec-name-error" : undefined}
                         className={`${inputBase} ${errors.nome && touched.nome ? inputErr : inputOk} disabled:opacity-60`}
                       />
                       {errors.nome && touched.nome && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                        <p id="entec-name-error" role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
                           <AlertCircle className="h-3.5 w-3.5" /> {errors.nome}
                         </p>
                       )}
@@ -304,10 +317,11 @@ export default function Inscricao() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0 w-full">
                       <div className="min-w-0">
-                        <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                        <label htmlFor="entec-cpf" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                           CPF
                         </label>
                         <input
+                          id="entec-cpf"
                           value={form.cpf}
                           onChange={(e) => setField("cpf", maskCPF(e.target.value))}
                           onBlur={() => setTouched((t) => ({ ...t, cpf: true }))}
@@ -315,29 +329,34 @@ export default function Inscricao() {
                           inputMode="numeric"
                           autoComplete="off"
                           disabled={submitting}
+                          aria-invalid={Boolean(errors.cpf && touched.cpf)}
+                          aria-describedby={errors.cpf && touched.cpf ? "entec-cpf-error" : undefined}
                           className={`${inputBase} ${errors.cpf && touched.cpf ? inputErr : inputOk} disabled:opacity-60`}
                         />
                         {errors.cpf && touched.cpf && (
-                          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                          <p id="entec-cpf-error" role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
                             <AlertCircle className="h-3.5 w-3.5" /> {errors.cpf}
                           </p>
                         )}
                       </div>
 
                       <div className="min-w-0">
-                        <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                        <label htmlFor="entec-birth-date" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                           Data de nascimento
                         </label>
                         <input
+                          id="entec-birth-date"
                           type="date"
                           value={form.nascimento}
                           onChange={(e) => setField("nascimento", e.target.value)}
                           onBlur={() => setTouched((t) => ({ ...t, nascimento: true }))}
                           disabled={submitting}
+                          aria-invalid={Boolean(errors.nascimento && touched.nascimento)}
+                          aria-describedby={errors.nascimento && touched.nascimento ? "entec-birth-date-error" : undefined}
                           className={`${inputBase} ${errors.nascimento && touched.nascimento ? inputErr : inputOk} [color-scheme:dark] disabled:opacity-60`}
                         />
                         {errors.nascimento && touched.nascimento && (
-                          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                          <p id="entec-birth-date-error" role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
                             <AlertCircle className="h-3.5 w-3.5" /> {errors.nascimento}
                           </p>
                         )}
@@ -345,10 +364,11 @@ export default function Inscricao() {
                     </div>
 
                     <div className="min-w-0">
-                      <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
+                      <label htmlFor="entec-email" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/80 mb-2">
                         E-mail
                       </label>
                       <input
+                        id="entec-email"
                         type="email"
                         value={form.email}
                         onChange={(e) => setField("email", e.target.value)}
@@ -356,10 +376,12 @@ export default function Inscricao() {
                         placeholder="voce@exemplo.com"
                         autoComplete="email"
                         disabled={submitting}
+                        aria-invalid={Boolean(errors.email && touched.email)}
+                        aria-describedby={errors.email && touched.email ? "entec-email-error" : undefined}
                         className={`${inputBase} ${errors.email && touched.email ? inputErr : inputOk} disabled:opacity-60`}
                       />
                       {errors.email && touched.email && (
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
+                        <p id="entec-email-error" role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300">
                           <AlertCircle className="h-3.5 w-3.5" /> {errors.email}
                         </p>
                       )}
@@ -417,27 +439,33 @@ export default function Inscricao() {
               <form onSubmit={handleCertificado} noValidate className="mt-6 space-y-4 min-w-0 w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
                   <div className="min-w-0">
-                    <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">CPF</label>
+                    <label htmlFor="certificate-cpf" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">CPF</label>
                     <input
+                      id="certificate-cpf"
                       value={certForm.cpf}
                       onChange={(e) => setCertField("cpf", maskCPF(e.target.value))}
                       placeholder="000.000.000-00"
                       inputMode="numeric"
+                      aria-invalid={Boolean(certErrors.cpf)}
+                      aria-describedby={certErrors.cpf ? "certificate-cpf-error" : undefined}
                       className={`${inputBase} ${certErrors.cpf ? inputErr : inputOk}`}
                     />
-                    {certErrors.cpf && <p className="mt-1.5 text-xs text-red-300">{certErrors.cpf}</p>}
+                    {certErrors.cpf && <p id="certificate-cpf-error" role="alert" className="mt-1.5 text-xs text-red-300">{certErrors.cpf}</p>}
                   </div>
                   <div className="min-w-0">
-                    <label className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">
+                    <label htmlFor="certificate-birth-date" className="block text-[11px] tracking-[0.16em] uppercase font-medium text-lavender/70 mb-2">
                       Data de nascimento
                     </label>
                     <input
+                      id="certificate-birth-date"
                       type="date"
                       value={certForm.nascimento}
                       onChange={(e) => setCertField("nascimento", e.target.value)}
+                      aria-invalid={Boolean(certErrors.nascimento)}
+                      aria-describedby={certErrors.nascimento ? "certificate-birth-date-error" : undefined}
                       className={`${inputBase} ${certErrors.nascimento ? inputErr : inputOk} [color-scheme:dark]`}
                     />
-                    {certErrors.nascimento && <p className="mt-1.5 text-xs text-red-300">{certErrors.nascimento}</p>}
+                    {certErrors.nascimento && <p id="certificate-birth-date-error" role="alert" className="mt-1.5 text-xs text-red-300">{certErrors.nascimento}</p>}
                   </div>
                 </div>
 

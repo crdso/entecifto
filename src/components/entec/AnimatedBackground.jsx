@@ -17,7 +17,7 @@ export default function AnimatedBackground() {
       <div
         className="absolute inset-0 animate-fabric-drift will-change-transform"
         style={{
-          backgroundImage: "url('/entec-silver-bg.png')",
+          backgroundImage: "url('/entec-silver-bg.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           transform: "scale(1.06)",
@@ -29,7 +29,7 @@ export default function AnimatedBackground() {
       <div
         className="absolute inset-0 animate-fabric-drift-2 will-change-transform opacity-[0.32] mix-blend-soft-light"
         style={{
-          backgroundImage: "url('/entec-silver-bg.png')",
+          backgroundImage: "url('/entec-silver-bg.webp')",
           backgroundSize: "cover",
           backgroundPosition: "48% 52%",
           transform: "scale(1.12)",
