@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, X, CheckCircle2, Loader2, Wallet } from "lucide-react";
+import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, CheckCircle2, Loader2, Wallet } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 import { AppleWalletBadge, GoogleWalletBadge } from "@/components/entec/WalletBadges";
@@ -92,7 +92,6 @@ export default function Inscricao() {
   const [touched, setTouched] = useState({});
   const [certForm, setCertForm] = useState({ cpf: "", nascimento: "" });
   const [certErrors, setCertErrors] = useState({});
-  const [showCertModal, setShowCertModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [certSubmitting, setCertSubmitting] = useState(false);
   const [success, setSuccess] = useState(null);
@@ -533,54 +532,6 @@ export default function Inscricao() {
       </main>
 
       <Footer />
-
-      {/* Modal elegante para certificado ainda não liberado */}
-      <AnimatePresence>
-        {showCertModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-void/70 backdrop-blur-sm"
-            onClick={() => setShowCertModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: 8 }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md rounded-[24px] border border-white/10 bg-gradient-to-b from-[rgba(36,36,38,0.95)] to-[rgba(16,16,18,0.98)] backdrop-blur-xl p-7 sm:p-8 shadow-[0_24px_64px_rgba(0,0,0,0.55)] overflow-hidden"
-            >
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-              <button
-                onClick={() => setShowCertModal(false)}
-                className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-dim/60 hover:text-data hover:border-white/20 transition"
-                aria-label="Fechar"
-              >
-                <X className="h-4 w-4" />
-              </button>
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-void mx-auto shadow-[0_8px_20px_rgba(255,255,255,0.15)]">
-                <Award className="h-6 w-6" />
-              </div>
-              <h4 className="mt-4 text-center font-display font-semibold text-lg text-data">Certificados ainda não liberados</h4>
-              <p className="mt-2 text-center text-sm leading-relaxed text-dim/75">
-                Os certificados da ENTEC 2026 ainda não foram liberados pela organização. Após o encerramento do evento, volte a esta
-                página para acessá-los.
-              </p>
-              <div className="mt-6 flex justify-center">
-                <button
-                  onClick={() => setShowCertModal(false)}
-                  className="px-7 py-2.5 rounded-full bg-data text-void text-sm font-semibold tracking-[0.08em] uppercase hover:bg-white transition-colors"
-                >
-                  Entendi
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

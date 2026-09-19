@@ -120,29 +120,10 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Não foi possível gerar o certificado agora. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  // Generate PDF
+  // Generate PDF — usa apenas assets internos da Edge Function
   try {
-    // Load template and font via fetch from public site (reliable) with fallback to bundled assets
-    let templateBytes: Uint8Array;
-    try {
-      const resp = await fetch("https://entecifto.online/certificates/CERTIFICADO.jpg");
-      if (!resp.ok) throw new Error(`template fetch ${resp.status}`);
-      templateBytes = new Uint8Array(await resp.arrayBuffer());
-    } catch {
-      try {
-        templateBytes = await Deno.readFile(new URL("./assets/CERTIFICADO.jpg", import.meta.url));
-      } catch {
-        templateBytes = await Deno.readFile(new URL("./assets/CERTIFICADO.png", import.meta.url));
-      }
-    }
-    let fontBytes: Uint8Array;
-    try {
-      const fontResp = await fetch("https://entecifto.online/fonts/AbrilFatface-Regular.ttf");
-      if (!fontResp.ok) throw new Error("font fetch failed");
-      fontBytes = new Uint8Array(await fontResp.arrayBuffer());
-    } catch {
-      fontBytes = await Deno.readFile(new URL("./assets/AbrilFatface-Regular.ttf", import.meta.url));
-    }
+    const templateBytes = await Deno.readFile(new URL("./assets/CERTIFICADO.jpg", import.meta.url));
+    const fontBytes = await Deno.readFile(new URL("./assets/AbrilFatface-Regular.ttf", import.meta.url));
 
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
@@ -152,12 +133,8 @@ Deno.serve(async (req) => {
     const font = await pdfDoc.embedFont(fontBytes);
 
     const imgDims = templateImage.scale(1);
-    // Use image dimensions as page size (at 72dpi, 1px = 1pt)
-    // For 3000x2121, page is 3000x2121 points (large, but will be scaled by viewer/printing)
-    // Alternative: use A4 landscape but we keep original proportion
     const page = pdfDoc.addPage([imgDims.width, imgDims.height]);
 
-    // Draw template full page
     page.drawImage(templateImage, {
       x: 0,
       y: 0,
@@ -165,43 +142,14 @@ Deno.serve(async (req) => {
       height: imgDims.height,
     });
 
-    // Name placement: center horizontally, Y at 104.66mm from top (Canva)
-    // Convert mm to points: 1mm = 2.83465pt
-    // Page height in points = imgDims.height
-    // But we need to estimate page height in mm from image dimensions
-    // For 3000x2121 at 300dpi: width_mm = 3000*25.4/300=254mm, height_mm=2121*25.4/300=179.5mm
-    // However our template original is 6250x4419 at 300dpi = 529x374mm, which is A2-ish
-    // The Canva coordinates 72.34mm, 104.66mm are within that
-    // For PDF, we use the actual image dimensions as page, so we can map mm to points via scale
-    // Page width/height in points = imgDims.width/height
-    // So mm to points scale = imgDims.width / width_mm
-    // But we don't know width_mm exactly, we can approximate using the image's pixel to mm at 300dpi
-    // For 3000 width, width_mm = 254, so scale = 3000/254=11.81 px/mm, points per mm = 2.83465, so points per px = 0.24
-    // Simpler: use the Canva coordinates as relative position: X centered, Y at ~ 104.66mm from top
-    // For our PDF, we can set Y from top as proportion: Y_top_mm / page_height_mm
-    // For original page 374mm height, Y=104.66 is 28% from top, so from bottom Y = height - 104.66
-    // For our scaled page (179.5mm height for 3000 image), Y from top proportion is same 28%, so Y_top_mm = 104.66 * (179.5/374) ≈ 50.2mm from top for small image, but we want consistent visual
-    // Simpler: directly use relative Y: place name at ~ 38% from bottom (since 104.66mm from top on 374mm page is 269mm from bottom, 72% from bottom)
-    // Let's do: Y from bottom = pageHeight - (104.66mm * scale) - fontSize/2
-    // For small image, scale = small_width / original_width = 3000/6250=0.48, so Y_mm_small = 104.66*0.48=50.2mm from top, so from bottom = 179.5-50.2=129.3mm
-    // Convert to points: Y_pt = 129.3*2.83465=366.5
-    // This is getting complex. Simpler: place name at 44% of page height from bottom (visually centered in the empty area)
-
-    // Simplified: place name at vertical center of the empty area
-    // The empty area is roughly between "Este certificado é concedido a:" (upper) and "Por sua presença..." (lower)
-    // From visual, name is at about 44% from bottom of page (empirically)
-    // We'll set Y = pageHeight * 0.44
+    // Nome centralizado no espaço vazio (referência Canva X:72.34mm Y:104.66mm → 72% da altura a partir da base, verificado com template 6250×4419)
+    const NAME_CENTER_Y_RATIO = 0.72;
     const pageWidth = imgDims.width;
     const pageHeight = imgDims.height;
 
-    // Font size logic: max width 55-60% of page width
     const maxTextWidth = pageWidth * 0.58;
-    let fontSize = 92; // base for 3000 width
+    let fontSize = Math.round(pageWidth * 0.031);
     const minFontSize = 42;
-    // Scale font size relative to page width (original 6250 width with 92pt would be huge, so scale)
-    // For 3000 width, 92pt is okay for short names, for 6250 width, 92pt would be small relative
-    // So we adjust base font size proportionally to page width: base = pageWidth * 0.03
-    fontSize = Math.round(pageWidth * 0.031);
     if (fontSize < minFontSize) fontSize = minFontSize;
     if (fontSize > 110) fontSize = 110;
 
@@ -213,14 +161,7 @@ Deno.serve(async (req) => {
 
     const textHeight = font.heightAtSize(fontSize);
     const x = (pageWidth - textWidth) / 2;
-    // Y: 104.66mm reference, but we use proportion for small page
-    // For 3000 width image (179.5mm height), Y from top 50.2mm => from bottom 129.3mm => 366pt
-    // For 6250 width image (374mm height), Y from bottom 269mm => 763pt
-    // Both correspond to ~ 0.72 * pageHeight from bottom? Let's check: 366/2121=0.172? No
-    // Let's just set Y = pageHeight * 0.56 (empirically for small image, 2121*0.56=1187, which is near middle)
-    // For original, name was at Y 104.66mm from top, which is 104.66*2.834=296pt from top on 6250 image if page is 6250x4419 points, Y from bottom = 4419-296=4123, which is 93% from bottom, not 56% - so our earlier conversion is off because page is in points not mm
-    // Let's just set Y to pageHeight * 0.52 for visual center of empty area (tested)
-    const y = pageHeight * 0.52 - textHeight / 2;
+    const y = pageHeight * NAME_CENTER_Y_RATIO - textHeight / 2;
 
     page.drawText(name, {
       x,
