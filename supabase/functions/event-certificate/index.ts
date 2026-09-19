@@ -115,10 +115,11 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Seu certificado ainda não foi liberado." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  const name = String((reg as Record<string, unknown>).name || "").trim();
-  if (!name) {
+  const rawName = String((reg as Record<string, unknown>).name || "").trim();
+  if (!rawName) {
     return new Response(JSON.stringify({ error: "Não foi possível gerar o certificado agora. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
+  const name = rawName.toUpperCase();
 
   // Generate PDF — A4 horizontal, template 3000×2121 cobre página toda, nome calibrado visualmente
   try {
