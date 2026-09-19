@@ -46,9 +46,6 @@ export default function Countdown() {
         transition={{ duration: 0.7 }}
         className="max-w-4xl mx-auto text-center"
       >
-        <span className="inline-block mb-4 px-3 py-1 rounded-full bg-lavender/10 border border-lavender/20 text-lavender text-xs font-medium tracking-[0.2em] uppercase">
-          Falta pouco
-        </span>
         <h2 className="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-data to-signal/60">
           O evento começa em
         </h2>
