@@ -32,6 +32,12 @@ const META = {
     canonical: null,
     robots: "noindex,nofollow,noarchive",
   },
+  "/resultados": {
+    title: "Resultados dos Stands | ENTEC 2026",
+    description: "Acompanhe a divulgação oficial do pódio dos stands do ENTEC 2026.",
+    canonical: "https://entecifto.online/resultados",
+    robots: "index,follow",
+  },
 };
 
 function ensureMeta(name, content) {

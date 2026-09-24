@@ -11,6 +11,7 @@ const NAV = [
 
 const EVENT = [
   { label: "Sobre o ENTEC", to: "/sobre" },
+  { label: "Resultados dos stands", to: "/resultados" },
 ];
 
 export default function Footer() {

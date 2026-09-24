@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X, AlertCircle, Wallet, QrCode } from "lucide-react";
+import { Search, Loader2, ShieldCheck, LogOut, PackageCheck, Package, Copy, CopyCheck, Eye, Activity, Users, Globe, RefreshCw, Trash2, Download, FileDown, UserCheck, BadgeCheck, CheckCircle2, X, AlertCircle, Wallet, QrCode, Trophy } from "lucide-react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { selectRows, supabase, updateRow, deleteRow } from "@/lib/supabase";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/supabaseConfig";
 import CheckinScanner from "@/components/admin/CheckinScanner";
+import ResultsAdmin from "@/components/admin/ResultsAdmin";
 import jsPDF from "jspdf";
 import {
   DropdownMenu,
@@ -783,6 +784,13 @@ export default function Admin() {
             <Eye className="h-4 w-4" />
             Acessos {visitasStats.online > 0 && <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />}
           </button>
+          <button
+            onClick={() => setAdminTab("resultados")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${adminTab === "resultados" ? "border-signal bg-signal/20 text-data" : "border-signal/20 text-dim/70 hover:border-signal/50 hover:text-data"}`}
+          >
+            <Trophy className="h-4 w-4" />
+            Resultados
+          </button>
         </div>
 
         {adminTab === "inscricoes" ? (
@@ -1215,6 +1223,8 @@ export default function Admin() {
               }}
             />
           </>
+        ) : adminTab === "resultados" ? (
+          <ResultsAdmin accessToken={session?.access_token} />
         ) : (
           <>
             {/* Visitas - estatísticas */}

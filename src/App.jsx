@@ -15,6 +15,7 @@ import VisitTracker from './components/VisitTracker';
 import RouteMeta from './components/RouteMeta';
 
 const Admin = lazy(() => import("./pages/Admin"));
+const Resultados = lazy(() => import("./pages/Resultados"));
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/inscricao" element={<Inscricao />} />
           <Route path="/admin" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-void text-data text-sm">Carregando...</div>}><Admin /></Suspense>} />
+          <Route path="/resultados" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-void text-data text-sm">Carregando...</div>}><Resultados /></Suspense>} />
           <Route path="/privacidade" element={<Privacidade />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
