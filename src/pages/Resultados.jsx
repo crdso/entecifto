@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Loader2, RotateCcw, AlertTriangle, Clock } from "lucide-react";
+import { Loader2, RotateCcw, AlertTriangle, Clock } from "lucide-react";
 import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 import { supabase } from "@/lib/supabase";
@@ -14,26 +14,26 @@ import {
   seenKeyFor,
 } from "@/lib/standResults";
 
-// Sequência da revelação (3º → 2º → 1º): cada colocação entra GRANDE no
-// centro como protagonista e, depois de revelada, REDUZ e VIAJA para sua
-// posição lateral definitiva. Durações em ms por etapa (~17s no total).
+// Sequência da revelação (3º → 2º → 1º): plataforma sobe do bottom,
+// pausa, nome aparece acima, plataforma viaja para a lateral.
+// Durações em ms por etapa (~21s no total).
 const REVEAL_STEPS = [
   "prep",
-  "third-in",
-  "third-hold",
-  "third-name",
-  "third-out",
-  "second-in",
-  "second-hold",
-  "second-name",
-  "second-out",
+  "p3-rise",
+  "p3-hold",
+  "p3-name",
+  "p3-exit",
+  "p2-rise",
+  "p2-hold",
+  "p2-name",
+  "p2-exit",
   "anticipation",
   "spotlight",
-  "first-base",
-  "first-number",
-  "first-name",
+  "p1-rise",
+  "p1-hold",
+  "p1-name",
 ];
-const REVEAL_DURATIONS = [1000, 700, 1000, 1500, 900, 800, 1200, 1500, 900, 900, 1200, 800, 1800, 2600];
+const REVEAL_DURATIONS = [1000, 800, 1500, 2000, 800, 800, 1500, 2000, 800, 1200, 1400, 900, 2200, 3000];
 
 const EASE = [0.22, 1, 0.36, 1];
 
@@ -45,11 +45,20 @@ function Eyebrow({ children }) {
   );
 }
 
-function ChromeTitle({ children, className }) {
+function ChromeTitle({ children, className, tone = "silver" }) {
+  const vivid = tone === "cyan";
   return (
     <h1
-      className={`font-tech font-extrabold tracking-[0.04em] text-transparent bg-clip-text bg-gradient-to-r from-[#5F636A] via-white to-[#5F636A] bg-[length:200%_auto] animate-shimmer ${className || ""}`}
-      style={{ filter: "drop-shadow(0 0 26px rgba(220,223,230,0.28))", animationDuration: "6s" }}
+      className={`font-tech font-extrabold tracking-[0.04em] text-transparent bg-clip-text bg-[length:200%_auto] animate-shimmer ${
+        vivid
+          ? "bg-gradient-to-r from-[#22D3EE] via-[#F7F7F8] to-[#67E8F9]"
+          : "bg-gradient-to-r from-[#5F636A] via-white to-[#5F636A]"
+      } ${className || ""}`}
+      style={
+        vivid
+          ? { filter: "drop-shadow(0 0 22px rgba(34,211,238,0.40))", animationDuration: "5s" }
+          : { filter: "drop-shadow(0 0 26px rgba(220,223,230,0.28))", animationDuration: "6s" }
+      }
     >
       {children}
     </h1>
@@ -182,86 +191,70 @@ function SuspenseState() {
 }
 
 // ---------------- Pódio final ----------------
-function PlaceCard({ pos, name, score, variant }) {
-  const isFirst = variant === "first";
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl backdrop-blur-md border px-4 py-6 sm:py-8 text-center ${
-        isFirst
-          ? "border-signal/50 bg-gradient-to-b from-white/[0.10] via-energy/60 to-void shadow-[0_0_60px_rgba(220,223,230,0.18)]"
-          : variant === "second"
-            ? "border-signal/30 bg-gradient-to-b from-white/[0.06] to-void/70"
-            : "border-signal/20 bg-gradient-to-b from-white/[0.04] to-void/70"
-      }`}
-    >
-      {/* reflexo metálico superior */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/[0.10] to-transparent" />
-      {/* detalhe discreto: ouro muito sutil no 1º, bronze discreto no 3º */}
-      {isFirst && (
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/50 to-transparent" />
-      )}
-      {variant === "third" && (
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-700/40 to-transparent" />
-      )}
-      <div
-        className={`font-tech font-extrabold leading-none ${
-          isFirst
-            ? "text-5xl sm:text-7xl text-transparent bg-clip-text bg-gradient-to-b from-white via-lavender to-pulse"
-            : "text-4xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-b from-lavender/90 to-pulse/60"
-        }`}
-      >
-        {pos.replace("º", "")}
-      </div>
-      <div className="mt-1 text-[10px] sm:text-xs uppercase tracking-[0.24em] text-dim/60">
-        {pos} lugar
-      </div>
-      <div
-        className={`mx-auto mt-4 max-w-full font-semibold leading-tight text-balance break-words ${
-          isFirst ? "text-xl sm:text-3xl text-data" : "text-base sm:text-xl text-data/95"
-        }`}
-      >
-        {name}
-      </div>
-      <div className="mt-2 text-xs sm:text-sm uppercase tracking-[0.2em] text-lavender/70">
-        Nota {formatScore(score)}
-      </div>
-    </div>
-  );
-}
-
 function FinalPodium({ podium, onReplay }) {
+  const cols = [
+    { place: "second", digit: "2", name: podium.second, score: podium.secondScore, tone: "silver", medal: "silver", champ: false },
+    { place: "first", digit: "1", name: podium.first, score: podium.firstScore, tone: "gold", medal: "gold", champ: true },
+    { place: "third", digit: "3", name: podium.third, score: podium.thirdScore, tone: "bronze", medal: "bronze", champ: false },
+  ];
+  const platTone = {
+    gold: "border-cyan-200/60 bg-gradient-to-b from-[#2BC3D6] via-[#0E7490] to-[#083038] shadow-[0_0_50px_rgba(34,211,238,0.30)]",
+    silver: "border-cyan-300/40 bg-gradient-to-b from-[#0F5A6B] via-[#0C3540] to-[#08141A]",
+    bronze: "border-cyan-400/25 bg-gradient-to-b from-[#12313A] via-[#0C242B] to-[#071318]",
+  };
+  const platH = {
+    first: "h-[300px] sm:h-[420px]",
+    second: "h-[220px] sm:h-[310px]",
+    third: "h-[180px] sm:h-[250px]",
+  };
   return (
     <div className="text-center">
       <Eyebrow>ENTEC 2026 · Resultado oficial</Eyebrow>
-      <ChromeTitle className="mt-3 text-3xl sm:text-5xl">PÓDIO — MELHORES STANDS</ChromeTitle>
+      <ChromeTitle tone="cyan" className="mt-3 text-4xl sm:text-6xl">PÓDIO — MELHORES STANDS</ChromeTitle>
       <Hairline />
 
-      <div className="mx-auto mt-10 grid max-w-4xl grid-cols-2 sm:grid-cols-3 items-stretch sm:items-end gap-2 sm:gap-5">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="col-span-2 sm:col-span-1 sm:order-2"
-        >
-          <PlaceCard pos="1º" name={podium.first} score={podium.firstScore} variant="first" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.12, ease: EASE }}
-          className="sm:order-1"
-        >
-          <PlaceCard pos="2º" name={podium.second} score={podium.secondScore} variant="second" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.24, ease: EASE }}
-          className="sm:order-3"
-        >
-          <PlaceCard pos="3º" name={podium.third} score={podium.thirdScore} variant="third" />
-        </motion.div>
+      <div className="mx-auto mt-10 grid w-[96vw] max-w-[720px] grid-cols-[27%_34%_27%] items-end justify-center gap-x-1 sm:gap-x-2">
+        {cols.map((c, i) => (
+          <motion.div
+            key={c.place}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: i * 0.12, ease: EASE }}
+            className="flex min-w-0 flex-col items-center justify-end"
+          >
+            <img
+              src={MASCOTS[c.place]}
+              alt={`Mascote do ${c.digit}º lugar`}
+              draggable={false}
+              className="select-none object-contain"
+              style={{ width: c.champ ? "clamp(125px, 30vw, 200px)" : "clamp(90px, 23vw, 148px)" }}
+            />
+            <div className={`relative mt-2 flex w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-t-md border-x border-t px-1 py-5 sm:py-6 ${platTone[c.tone]} ${platH[c.place]}`}>
+              <div
+                className={`absolute inset-x-0 top-0 h-[3px] ${
+                  c.champ
+                    ? "bg-gradient-to-r from-transparent via-white/80 to-transparent"
+                    : "bg-gradient-to-r from-transparent via-cyan-100/40 to-transparent"
+                }`}
+              />
+              <div style={{ width: c.champ ? "clamp(58px, 15vw, 78px)" : "clamp(46px, 12vw, 66px)" }} className="aspect-square shrink-0">
+                <Medal digit={c.digit} tone={c.medal} size="100%" />
+              </div>
+              <p
+                className={`w-full break-words font-extrabold leading-tight text-data line-clamp-2 ${
+                  c.champ ? "text-lg sm:text-3xl" : "text-sm sm:text-lg"
+                }`}
+              >
+                {c.name}
+              </p>
+              <p className={`font-semibold text-white/75 ${c.champ ? "text-base sm:text-xl" : "text-xs sm:text-base"}`}>
+                {formatScore(c.score)}
+              </p>
+            </div>
+          </motion.div>
+        ))}
       </div>
+      <div className="mx-auto mt-0 h-px w-[96vw] max-w-[720px] bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent" />
 
       <button
         onClick={onReplay}
@@ -301,161 +294,219 @@ function revealPose(place, step) {
   return "fg";
 }
 
-// Largura real do palco, para calcular o deslocamento lateral em px.
-function useStageWidth(ref) {
-  const [w, setW] = useState(360);
+// Viewport real, para dimensionar palco e plataformas em px.
+function useViewport() {
+  const [vp, setVp] = useState({ w: 390, h: 700 });
   useEffect(() => {
-    const update = () => {
-      const rect = ref.current?.getBoundingClientRect();
-      if (rect && rect.width > 0) setW(rect.width);
-    };
+    const update = () => setVp({ w: window.innerWidth, h: window.innerHeight });
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, [ref]);
-  return w;
+  }, []);
+  return vp;
 }
 
-// Facho do holofote: trapézio de luz suave vindo de cima.
-function Beam({ rotate, width, strength, delay }) {
+// Holofote de palco: cone único que ENTRA UMA VEZ e permanece.
+// Origem no topo central, abrindo em direção ao pedestal do campeão.
+function Spotlight() {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: [0, strength, strength * 0.82, strength] }}
-      transition={{ duration: 3.4, delay, repeat: Infinity, ease: "easeInOut" }}
-      className={`pointer-events-none absolute -top-[8%] left-1/2 h-[116%] origin-top -translate-x-1/2 ${width} ${rotate}`}
-      style={{
-        clipPath: "polygon(36% 0, 64% 0, 100% 100%, 0% 100%)",
-        background:
-          "linear-gradient(to bottom, rgba(232,233,236,0.30), rgba(232,233,236,0.08) 55%, transparent 85%)",
-        filter: "blur(7px)",
-      }}
-    />
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1.4, ease: "easeOut" }}
+      className="pointer-events-none absolute inset-0"
+    >
+      <div
+        className="absolute left-1/2 top-[-8%] h-[82%] w-[70vw] max-w-[520px] -translate-x-1/2"
+        style={{
+          clipPath: "polygon(41% 0, 59% 0, 100% 100%, 0% 100%)",
+          background:
+            "linear-gradient(to bottom, rgba(180,245,255,0.30), rgba(103,232,249,0.10) 55%, transparent 90%)",
+          filter: "blur(10px)",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-[-8%] h-[82%] w-[30vw] max-w-[240px] -translate-x-1/2"
+        style={{
+          clipPath: "polygon(44% 0, 56% 0, 100% 100%, 0% 100%)",
+          background: "linear-gradient(to bottom, rgba(255,255,255,0.30), transparent 75%)",
+          filter: "blur(8px)",
+        }}
+      />
+      <div
+        className="absolute bottom-[3%] left-1/2 h-[80px] w-[64vw] max-w-[480px] -translate-x-1/2 rounded-[100%]"
+        style={{
+          background: "radial-gradient(ellipse, rgba(103,232,249,0.24), transparent 70%)",
+          filter: "blur(6px)",
+        }}
+      />
+    </motion.div>
   );
 }
 
-// Cartão viajante: o mesmo elemento desliza do centro (grande) para a
-// lateral (menor), com o conteúdo se adaptando ao tamanho.
-function TravelCard({ digit, label, name, score, phase, pose, x, y, width, dimmed, champion, z }) {
-  const fg = pose === "fg";
+// Mascotes oficiais do pódio (arquivos reais em public/).
+const MASCOTS = {
+  first: "/1%20lugar.png",
+  second: "/2%20lugar.png",
+  third: "/3%20lugar.png",
+};
+
+// Medalha poligonal facetada (SVG): mesma geometria, metal por colocação.
+function Medal({ digit, tone, size }) {
+  const metals = {
+    gold: { stops: ["#FFD54A", "#F5B800", "#D99A00"], num: "#FFF8DC", id: "medal-gold" },
+    silver: { stops: ["#E5E7EB", "#AEB4BC", "#747B85"], num: "#FFFFFF", id: "medal-silver" },
+    bronze: { stops: ["#F97316", "#C65313", "#87320F"], num: "#FFEDD5", id: "medal-bronze" },
+  };
+  const m = metals[tone] || metals.silver;
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <linearGradient id={m.id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={m.stops[0]} />
+          <stop offset="0.55" stopColor={m.stops[1]} />
+          <stop offset="1" stopColor={m.stops[2]} />
+        </linearGradient>
+      </defs>
+      <polygon
+        points="50,3 91,27 91,73 50,97 9,73 9,27"
+        fill={`url(#${m.id})`}
+        stroke="rgba(255,255,255,0.4)"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <polygon points="50,3 91,27 50,51 9,27" fill="rgba(255,255,255,0.20)" />
+      <line x1="50" y1="51" x2="50" y2="97" stroke="rgba(0,0,0,0.20)" strokeWidth="2" />
+      <text x="50" y="68" textAnchor="middle" fontSize="42" fontWeight="900" fill={m.num} fontFamily="Orbitron, sans-serif">
+        {digit}
+      </text>
+    </svg>
+  );
+}
+
+// Unidade do pódio estilo Kahoot: mascote + medalha + nome + média viajam
+// juntos com a plataforma. O MESMO elemento nasce no centro e vai para a
+// lateral. Fases: hidden | platform | shown | named.
+function PodiumPlatform({ place, name, score, phase, big, x, w, h, mascW, medalS, dimmed, tone, champion, z }) {
+  const showMedal = phase !== "hidden";
+  const showDetails = phase === "named";
+  const medalTone = place === "first" ? "gold" : place === "second" ? "silver" : "bronze";
+  const posLabel = place === "first" ? "1º" : place === "second" ? "2º" : "3º";
+  const digit = posLabel.replace("º", "");
   return (
     <div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 sm:bottom-8"
       style={{ zIndex: z }}
     >
       <motion.div
-        initial={{ opacity: 0, y: 70 }}
-        animate={{ opacity: phase === "hidden" ? 0 : dimmed ? 0.35 : 1, x, y, width }}
-        transition={{ type: "spring", stiffness: 64, damping: 19 }}
-        style={{ width }}
-        className={`overflow-hidden rounded-2xl sm:rounded-3xl border backdrop-blur-md text-center ${
-          champion && phase === "named"
-            ? "border-signal/60 bg-gradient-to-b from-white/[0.12] via-energy/60 to-void shadow-[0_0_60px_rgba(220,223,230,0.25)]"
-            : "border-signal/30 bg-gradient-to-b from-white/[0.07] to-void/80"
-        } ${fg ? "px-6 py-8 sm:px-10 sm:py-10" : "px-2 py-3 sm:px-3 sm:py-4"}`}
+        initial={{ opacity: 0, y: 140 }}
+        animate={{
+          opacity: phase === "hidden" ? 0 : dimmed ? 0.85 : 1,
+          filter: dimmed ? "brightness(0.65)" : "brightness(1)",
+          x,
+          y: phase === "hidden" ? 140 : 0,
+          width: w,
+        }}
+        transition={{
+          x: { duration: 0.8, ease: EASE },
+          y: { duration: 0.8, ease: EASE },
+          width: { duration: 0.8, ease: EASE },
+          opacity: { duration: 0.5 },
+          filter: { duration: 0.8 },
+        }}
+        style={{ width: w }}
+        className="flex shrink-0 flex-col items-center justify-end"
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/[0.10] to-transparent" />
-        {champion && phase === "named" && (
-          <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/60 to-transparent" />
-        )}
-
-        <AnimatePresence mode="wait" initial={false}>
+        {/* mascote: só o personagem, sem caixa/fundo/borda */}
+        <AnimatePresence>
+          {showDetails && (
+            <motion.img
+              src={MASCOTS[place]}
+              alt={`Mascote do ${posLabel} lugar`}
+              draggable={false}
+              initial={{ opacity: 0, y: champion ? 25 : 20, scale: champion ? 0.82 : 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={
+                champion
+                  ? { type: "spring", stiffness: 170, damping: 16 }
+                  : { duration: 0.5, ease: EASE }
+              }
+              style={{ width: mascW }}
+              className="max-w-none select-none object-contain transition-[width] duration-700 ease-out"
+            />
+          )}
+        </AnimatePresence>
+        {/* plataforma sólida bottom-anchored, com medalha + nome + nota dentro */}
+        <motion.div
+          initial={false}
+          animate={{ height: h }}
+          transition={{ height: { duration: 0.8, ease: EASE } }}
+          style={{ height: h }}
+          className={`relative mt-2 flex w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-t-md border-x border-t px-1 py-4 ${
+            tone === "gold"
+              ? "border-cyan-200/60 bg-gradient-to-b from-[#2BC3D6] via-[#0E7490] to-[#083038] shadow-[0_0_70px_rgba(34,211,238,0.35)]"
+              : tone === "bronze"
+                ? "border-cyan-400/25 bg-gradient-to-b from-[#12313A] via-[#0C242B] to-[#071318]"
+                : "border-cyan-300/40 bg-gradient-to-b from-[#0F5A6B] via-[#0C3540] to-[#08141A]"
+          }`}
+        >
+          <div
+            className={`absolute inset-x-0 top-0 h-[3px] ${
+              tone === "gold"
+                ? "bg-gradient-to-r from-transparent via-white/80 to-transparent"
+                : tone === "bronze"
+                  ? "bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent"
+                  : "bg-gradient-to-r from-transparent via-cyan-100/50 to-transparent"
+            }`}
+          />
+          {/* medalha poligonal dentro do bloco */}
           <motion.div
-            key={`${pose}-${phase}`}
-            initial={{ opacity: 0, filter: "blur(6px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, filter: "blur(6px)" }}
-            transition={{ duration: 0.35, ease: EASE }}
+            initial={false}
+            animate={{ opacity: showMedal ? 1 : 0, scale: showMedal ? 1 : 0.6 }}
+            transition={{ duration: 0.45, ease: EASE }}
           >
-            {phase === "hidden" && <div className={fg ? "h-40" : "h-20"} />}
-
-            {phase === "pedestal" && (
-              <div className="flex flex-col items-center">
-                <div className="flex h-20 sm:h-28 w-3/4 items-center justify-center rounded-xl border border-signal/40 bg-white/[0.04] animate-pulse" aria-hidden="true">
-                  <span className="font-tech text-2xl sm:text-3xl text-white/25 select-none">?</span>
-                </div>
-                <div className="mt-3 flex gap-1.5" aria-hidden="true">
-                  {[0, 1, 2].map((i) => (
-                    <motion.span
-                      key={i}
-                      animate={{ opacity: [0.2, 1, 0.2] }}
-                      transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }}
-                      className="h-1 w-1 rounded-full bg-lavender/80"
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {phase === "base" && (
-              <div className="flex flex-col items-center">
-                <div
-                  className={`font-tech font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-b from-white via-lavender to-pulse ${
-                    fg ? (champion ? "text-7xl sm:text-9xl" : "text-6xl sm:text-8xl") : "text-3xl"
-                  }`}
-                  style={champion && fg ? { filter: "drop-shadow(0 0 30px rgba(220,223,230,0.5))" } : undefined}
-                >
-                  {digit}
-                </div>
-                <div
-                  className={`mt-1 uppercase text-dim/60 ${
-                    fg ? "text-[11px] sm:text-xs tracking-[0.24em]" : "text-[9px] tracking-[0.18em]"
-                  }`}
-                >
-                  {label} lugar
-                </div>
-                {fg && (
-                  <div className="mt-3 flex gap-1.5" aria-hidden="true">
-                    {[0, 1, 2].map((i) => (
-                      <motion.span
-                        key={i}
-                        animate={{ opacity: [0.2, 1, 0.2] }}
-                        transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18 }}
-                        className="h-1 w-1 rounded-full bg-lavender/80"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {phase === "named" && (
-              <div className="flex w-full flex-col items-center">
-                <div
-                  className={`font-tech font-extrabold leading-none text-transparent bg-clip-text bg-gradient-to-b from-white via-lavender to-pulse ${
-                    fg ? (champion ? "text-6xl sm:text-8xl" : "text-5xl sm:text-7xl") : "text-2xl"
-                  }`}
-                  style={champion && fg ? { filter: "drop-shadow(0 0 28px rgba(220,223,230,0.45))" } : undefined}
-                >
-                  {digit}
-                </div>
+            <Medal digit={digit} tone={medalTone} size={medalS} />
+          </motion.div>
+          {/* nome + média dentro do bloco */}
+          <AnimatePresence>
+            {showDetails && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.55, ease: EASE }}
+                className="w-full max-w-[220px] text-center"
+              >
                 <p
-                  className={`mt-1.5 w-full font-semibold leading-tight break-words ${
-                    fg
-                      ? champion
-                        ? "text-xl sm:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-[#8a8e96] via-white to-[#8a8e96] bg-[length:200%_auto] animate-shimmer"
-                        : "text-2xl sm:text-4xl text-data"
-                      : "text-[11px] leading-tight text-data/95"
+                  className={`font-extrabold leading-tight break-words line-clamp-2 ${
+                    champion
+                      ? "text-transparent bg-clip-text bg-gradient-to-r from-white via-[#A5F3FC] to-white bg-[length:200%_auto] animate-shimmer"
+                      : "text-data"
                   }`}
                   style={
-                    fg && champion
-                      ? { animationDuration: "4s", filter: "drop-shadow(0 0 20px rgba(220,223,230,0.4))" }
-                      : undefined
+                    big
+                      ? champion
+                        ? { fontSize: "clamp(1.5rem, 6vw, 2.5rem)", animationDuration: "4s", filter: "drop-shadow(0 0 18px rgba(165,243,252,0.4))" }
+                        : { fontSize: "clamp(1.2rem, 5vw, 2rem)" }
+                      : champion
+                        ? { fontSize: 15 }
+                        : { fontSize: 13 }
                   }
                 >
                   {name}
                 </p>
                 <p
-                  className={`mt-1 uppercase text-lavender/75 ${
-                    fg ? "text-xs sm:text-sm tracking-[0.22em]" : "text-[9px] tracking-[0.16em]"
-                  }`}
+                  className="mt-1 font-bold text-white/80"
+                  style={big ? { fontSize: 16 } : { fontSize: 12 }}
                 >
-                  Nota {formatScore(score)}
+                  {formatScore(score)}
                 </p>
-              </div>
+              </motion.div>
             )}
-          </motion.div>
-        </AnimatePresence>
+          </AnimatePresence>
+        </motion.div>
       </motion.div>
     </div>
   );
@@ -472,39 +523,114 @@ const PARTICLES = [
   { left: "42%", top: "44%", delay: 0.9 },
 ];
 
-function RevealStage({ step, podium }) {
-  const stageRef = useRef(null);
-  const stageW = useStageWidth(stageRef);
+function RevealTheater({ step, podium }) {
+  const vp = useViewport();
   const key = REVEAL_STEPS[step];
-  const spot = step >= 13 ? 2 : step >= 10 ? 1 : 0;
-  const dimSides = step >= 9;
 
-  const fgW = Math.min(stageW * 0.82, 440);
-  const sideW = Math.max(96, Math.min(170, stageW * 0.27));
-  const sideX = Math.max(0, stageW / 2 - sideW / 2 - 8);
+  // Pódio compacto calculado DENTRO do container: 27% / 34% / 27%.
+  const cw = Math.min(vp.w * 0.94, 600);
+  const gap = Math.max(4, Math.min(12, cw * 0.02));
+  const w1 = cw * 0.34;
+  const wSide = cw * 0.27;
+  const xSide = w1 / 2 + gap + wSide / 2;
+  const isMobile = vp.w < 640;
+  const hFg = isMobile ? 300 : 360;
+  const heights = {
+    first: isMobile ? 300 : 420,
+    second: isMobile ? 230 : 320,
+    third: isMobile ? 190 : 260,
+  };
+  const fgW = Math.min(cw * 0.8, 360);
+  const mascFg = isMobile ? 128 : 180;
+  const medalFg = isMobile ? 72 : 92;
+  const mascSide = { first: isMobile ? 100 : 150, second: isMobile ? 82 : 120, third: isMobile ? 76 : 110 };
+  const medalSide = { first: isMobile ? 52 : 68, second: isMobile ? 44 : 58, third: isMobile ? 44 : 58 };
+
+  const dim = step >= 9;
+
+  const cards = [
+    { place: "third", name: podium.third, score: podium.thirdScore, tone: "bronze", champion: false, side: 1 },
+    { place: "second", name: podium.second, score: podium.secondScore, tone: "silver", champion: false, side: -1 },
+    { place: "first", name: podium.first, score: podium.firstScore, tone: "gold", champion: true, side: 0 },
+  ];
+
   return (
-    <div className="relative flex min-h-[62vh] flex-col items-center justify-center overflow-hidden text-center">
-      {/* holofote do 1º lugar: penumbra + fachos convergindo ao centro */}
+    <>
+      {/* fundo azul-petróleo profundo + halo ciano + vinheta escura */}
+      <div className="absolute inset-0 bg-[#05090C]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(6,182,212,0.20),rgba(8,40,50,0.55)_48%,rgba(4,7,10,0)_78%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_52%,rgba(2,5,8,0.75)_100%)]" />
+      {/* penumbra antes do campeão */}
       <AnimatePresence>
-        {spot > 0 && (
+        {step >= 9 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="pointer-events-none absolute inset-0"
-          >
-            <div className="absolute inset-0 bg-black/55" />
-            <div className="absolute left-1/2 top-[6%] h-1/2 w-[88%] max-w-xl -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse,rgba(226,227,230,0.15)_0%,transparent_70%)]" />
-            <Beam rotate="-rotate-[14deg]" width="w-20 sm:w-36" strength={spot === 2 ? 0.85 : 0.5} delay={0} />
-            <Beam rotate="" width="w-24 sm:w-44" strength={spot === 2 ? 1 : 0.6} delay={0.4} />
-            <Beam rotate="rotate-[14deg]" width="w-20 sm:w-36" strength={spot === 2 ? 0.85 : 0.5} delay={0.8} />
-            <div className="absolute bottom-[4%] left-1/2 h-16 w-3/4 max-w-md -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse,rgba(226,227,230,0.22)_0%,transparent_70%)]" />
-          </motion.div>
+            transition={{ duration: 0.9 }}
+            className="pointer-events-none absolute inset-0 z-[5] bg-black/55"
+          />
         )}
       </AnimatePresence>
-
-      {/* partículas discretas no clímax do 1º lugar */}
+      {/* plataformas: o mesmo elemento nasce no centro e viaja para a lateral */}
+      <div className="absolute inset-0 z-10">
+        {cards.map((c) => {
+          const phase = revealPhase(c.place, step);
+          const pose = revealPose(c.place, step);
+          const isFg = pose === "fg";
+          return (
+            <PodiumPlatform
+              key={c.place}
+              place={c.place}
+              name={c.name}
+              score={c.score}
+              phase={phase}
+              big={isFg}
+              x={isFg ? 0 : c.side * xSide}
+              w={isFg ? fgW : (c.place === "first" ? w1 : wSide)}
+              h={isFg ? hFg : heights[c.place]}
+              mascW={isFg ? mascFg : mascSide[c.place]}
+              medalS={isFg ? medalFg : medalSide[c.place]}
+              dimmed={!isFg && dim}
+              tone={c.tone}
+              champion={c.champion}
+              z={isFg ? 30 : 10}
+            />
+          );
+        })}
+      </div>
+      {/* holofote: entra uma vez e permanece */}
+      <AnimatePresence>
+        {step >= 10 && (
+          <div className="absolute inset-0 z-20">
+            <Spotlight />
+          </div>
+        )}
+      </AnimatePresence>
+      {/* título breve de abertura */}
+      {key === "prep" && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="absolute inset-x-0 top-[30%] z-30 text-center"
+        >
+          <Eyebrow>ENTEC 2026 · Resultado oficial</Eyebrow>
+          <p className="mt-2 font-tech text-2xl sm:text-4xl font-extrabold tracking-[0.06em] text-data">
+            RESULTADOS
+          </p>
+        </motion.div>
+      )}
+      {/* impacto do campeão */}
+      {key === "first-name" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.35, 0] }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="pointer-events-none absolute inset-0 z-30 bg-white"
+        />
+      )}
       {key === "first-name" &&
         PARTICLES.map((p, i) => (
           <motion.span
@@ -512,104 +638,11 @@ function RevealStage({ step, podium }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: [0, 0.9, 0], y: -34 }}
             transition={{ duration: 2.2, delay: p.delay, ease: "easeOut" }}
-            className="pointer-events-none absolute h-1 w-1 rounded-full bg-lavender/80"
+            className={`pointer-events-none absolute z-30 h-1 w-1 rounded-full ${i % 2 === 0 ? "bg-white/90" : "bg-cyan-200/80"}`}
             style={{ left: p.left, top: p.top }}
           />
         ))}
-
-      {/* legenda da etapa */}
-      <div className="relative mb-4 sm:mb-6 flex min-h-[72px] sm:min-h-[96px] w-full items-center justify-center px-2">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={key}
-            initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
-            transition={{ duration: 0.45, ease: EASE }}
-            className="w-full"
-          >
-            {key === "prep" && (
-              <>
-                <Eyebrow>ENTEC 2026 · Resultado oficial</Eyebrow>
-                <p className="mt-2 font-tech text-2xl sm:text-4xl font-extrabold tracking-[0.06em] text-data">
-                  RESULTADOS
-                </p>
-              </>
-            )}
-            {key === "third-base" && (
-              <>
-                <p className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-lavender/80">
-                  Revelando o
-                </p>
-                <p className="mt-2 font-tech text-2xl sm:text-4xl font-extrabold tracking-[0.05em] text-data">
-                  3º LUGAR
-                </p>
-              </>
-            )}
-            {key === "second-base" && (
-              <>
-                <p className="text-[11px] sm:text-xs uppercase tracking-[0.3em] text-lavender/80">
-                  Revelando o
-                </p>
-                <p className="mt-2 font-tech text-2xl sm:text-4xl font-extrabold tracking-[0.05em] text-data">
-                  2º LUGAR
-                </p>
-              </>
-            )}
-            {key === "first-base" && (
-              <p className="text-xs sm:text-sm uppercase tracking-[0.24em] text-lavender/85">
-                E o campeão do ENTEC 2026 é…
-              </p>
-            )}
-            {key === "first-name" && (
-              <>
-                <Trophy className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-lavender" />
-                <p className="mt-2 text-xs sm:text-sm uppercase tracking-[0.3em] text-lavender/80">
-                  Campeão · ENTEC 2026
-                </p>
-              </>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      {/* palco: protagonistas viajam do centro para as laterais */}
-      <div ref={stageRef} className="relative z-10 h-[48vh] min-h-[360px] w-full">
-        {[
-          { place: "third", digit: "3", label: "3º", name: podium.third, score: podium.thirdScore, champion: false },
-          { place: "second", digit: "2", label: "2º", name: podium.second, score: podium.secondScore, champion: false },
-          { place: "first", digit: "1", label: "1º", name: podium.first, score: podium.firstScore, champion: true },
-        ].map((c) => {
-          const phase = revealPhase(c.place, step);
-          const pose = revealPose(c.place, step);
-          const isFg = pose === "fg";
-          return (
-            <TravelCard
-              key={c.place}
-              digit={c.digit}
-              label={c.label}
-              name={c.name}
-              score={c.score}
-              phase={phase}
-              pose={pose}
-              x={pose === "left" ? -sideX : pose === "right" ? sideX : 0}
-              y={isFg ? 0 : 46}
-              width={isFg ? fgW : sideW}
-              dimmed={!isFg && dimSides}
-              champion={c.champion}
-              z={isFg ? 30 : 10}
-            />
-          );
-        })}
-      </div>
-      {key === "first-name" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.4, 0] }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="pointer-events-none absolute inset-0 z-40 bg-white"
-        />
-      )}
-    </div>
+    </>
   );
 }
 
@@ -727,7 +760,7 @@ export default function Resultados() {
           if (mounted && !previewed) showSuspense();
           return;
         }
-        const podium = { first: res.first, second: res.second, third: res.third };
+        const podium = podiumFromPublic(res);
         setData({ releasedAt: res.released_at, podium });
         let seen = false;
         try {
@@ -779,6 +812,16 @@ export default function Resultados() {
     return () => clearTimeout(t);
   }, [phase, step, data]);
 
+  // Trava o scroll do body durante a apresentação fullscreen.
+  useEffect(() => {
+    if (phase !== "reveal") return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [phase]);
+
   const skipReveal = () => {
     const key = data?.preview ? previewSeenKey() : seenKeyFor(data?.releasedAt);
     try {
@@ -804,13 +847,17 @@ export default function Resultados() {
         {phase === "error" && <ErrorState onRetry={load} />}
         {phase === "suspense" && <SuspenseState />}
         {phase === "reveal" && data && (
-          <div>
-            {data.preview && <PreviewBanner />}
-            <RevealStage step={stepIndex} podium={data.podium} />
-            <div className="mt-2 text-center">
+          <div className="fixed inset-0 z-[9999] overflow-hidden bg-void">
+            <RevealTheater step={stepIndex} podium={data.podium} />
+            {data.preview && (
+              <div className="absolute inset-x-0 top-0 z-[70] px-4 pt-4">
+                <PreviewBanner />
+              </div>
+            )}
+            <div className="absolute inset-x-0 bottom-5 z-[70] text-center">
               <button
                 onClick={skipReveal}
-                className="text-xs uppercase tracking-[0.22em] text-dim/50 hover:text-lavender transition-colors"
+                className="text-xs uppercase tracking-[0.22em] text-data/50 hover:text-data transition-colors"
               >
                 Pular animação
               </button>
