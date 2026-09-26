@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap');
+
+/* Página temporária "Em produção" — fundo copiado da Hero do Utomic
+   (junção/hero.css: .uh-bg/.uh-shader). Classes prefixadas com ep- para
+   não colidir com o resto do site. Remover junto com EmProducao.jsx. */
+.ep-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Sora", "Sora Placeholder", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* fundo base EXATO da hero Utomic (.uh-bg) */
+.ep-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(153.944% 89.968% at 50.5333% .853789%,#fff 22.9436%,#eeecff 28.3643%,#dad6ff 33.2604%,#aea6fb 40.2947%,#7e72e7 46.6164%,#574abc 52.9953%,#2d2285 60.6561%,#190f65 66.2877%,#07003e 72.7383%,#000 89.9086%);
+}
+
+/* shader animado (.uh-shader: absolute inset 0, z 1, opacity .2) */
+.ep-shader {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: .2;
+  pointer-events: none;
+}
+.ep-shader canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* conteúdo central */
+.ep-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 900px;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: epIn .9s cubic-bezier(.22,.8,.28,1) both;
+}
+@keyframes epIn {
+  from { opacity: .001; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* logo chrome ENTEC (mesmo asset da junção: entec-icon-header.webp) */
+.ep-logo {
+  display: block;
+  width: clamp(120px, 28vw, 210px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 44px rgba(7,0,62,.45));
+}
+
+/* título gigante — mesma linguagem do .uh-title do Utomic */
+.ep-title {
+  margin: 26px 0 0;
+  width: 100%;
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: .92;
+  letter-spacing: 0;
+}
+.ep-title .ep-entec {
+  display: block;
+  font-size: clamp(3.4rem, 17vw, 10.5rem);
+}
+.ep-title .ep-year {
+  display: block;
+  margin-top: 10px;
+  font-size: clamp(1.15rem, 4.6vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: .55em;
+  text-indent: .55em;
+  color: #d9d4ff;
+}
+
+.ep-headline {
+  margin: 30px 0 0;
+  color: #fff;
+  font-size: clamp(1.35rem, 5.4vw, 2rem);
+  font-weight: 600;
+  line-height: 130%;
+}
+
+.ep-text {
+  margin: 16px 0 0;
+  max-width: 560px;
+  color: rgba(255,255,255,.88);
+  font-size: clamp(.98rem, 3.9vw, 1.15rem);
+  line-height: 155%;
+  font-weight: 400;
+}
+
+.ep-small {
+  margin: 22px 0 0;
+  color: rgba(255,255,255,.66);
+  font-size: clamp(.82rem, 3.4vw, .95rem);
+  line-height: 150%;
+}
+
+/* pulsação discreta (sem progresso, sem porcentagem) */
+.ep-dots {
+  margin-top: 30px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+.ep-dots span {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: .25;
+  animation: epPulse 1.6s ease-in-out infinite;
+}
+.ep-dots span:nth-child(2) { animation-delay: .2s; }
+.ep-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes epPulse {
+  0%, 100% { opacity: .25; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ep-content { animation: none; }
+  .ep-dots span { animation: none; opacity: .7; }
+}

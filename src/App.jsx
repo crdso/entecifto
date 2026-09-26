@@ -7,7 +7,8 @@ import PageNotFound from './lib/PageNotFound';
 import ScrollToTop from './components/ScrollToTop';
 import AnimatedBackground from '@/components/entec/AnimatedBackground';
 import PaymentReturn from '@/components/entec/PaymentReturn';
-import Home from './pages/Home';
+// import Home from './pages/Home'; // TEMPORÁRIO: Home original preservada — ver rota "/" abaixo
+import EmProducao from './pages/EmProducao'; // TEMPORÁRIO: página "Em produção" (fotos + certificados)
 import Sobre from './pages/Sobre';
 import Privacidade from './pages/Privacidade';
 import Inscricao from './pages/Inscricao';
@@ -27,7 +28,8 @@ function App() {
         <AnimatedBackground />
         <PaymentReturn />
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* TEMPORÁRIO: <EmProducao /> no lugar de <Home /> — reverter depois */}
+          <Route path="/" element={<EmProducao />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/inscricao" element={<Inscricao />} />
           <Route path="/admin" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-void text-data text-sm">Carregando...</div>}><Admin /></Suspense>} />
