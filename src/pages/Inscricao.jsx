@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar, Award, ArrowRight, BadgeCheck, AlertCircle, CheckCircle2, Loader2, Wallet } from "lucide-react";
@@ -6,6 +6,7 @@ import Header from "@/components/entec/Header";
 import Footer from "@/components/entec/Footer";
 import { AppleWalletBadge, GoogleWalletBadge } from "@/components/entec/WalletBadges";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIGURED } from "@/lib/supabaseConfig";
+import { selectRows } from "@/lib/supabase";
 
 function maskCPF(v) {
   const d = String(v || "").replace(/\D/g, "").slice(0, 11);
@@ -95,6 +96,24 @@ export default function Inscricao() {
   const [submitting, setSubmitting] = useState(false);
   const [certSubmitting, setCertSubmitting] = useState(false);
   const [success, setSuccess] = useState(null);
+  // Flag vinda do painel admin (event_settings.registrations_open).
+  // Começa aberta e só fecha se o banco confirmar (fail-open).
+  const [regOpen, setRegOpen] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const rows = await selectRows("event_settings", "key=eq.registrations_open&select=value");
+        if (alive && Array.isArray(rows) && rows.length > 0) {
+          setRegOpen(String(rows[0].value ?? "true").toLowerCase() !== "false");
+        }
+      } catch {
+        // sem a tabela/flag, mantém inscrições abertas
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const setCertField = (k, v) => setCertForm((f) => ({ ...f, [k]: v }));
@@ -148,6 +167,7 @@ export default function Inscricao() {
       const status = err.status || 0;
       let msg = err.message || "Não foi possível concluir sua inscrição. Tente novamente.";
       if (status === 409) msg = "Já existe uma inscrição vinculada a este CPF.";
+      else if (status === 403) msg = "Inscrições encerradas pela organização.";
       else if (status === 400 && /cpf/i.test(msg)) msg = "Informe um CPF válido.";
       else if (status === 400 && /email/i.test(msg)) msg = "Informe um e-mail válido.";
       else if (status >= 500) msg = "Não foi possível concluir sua inscrição. Tente novamente.";
@@ -321,6 +341,18 @@ export default function Inscricao() {
                   )}
 
                   <p className="mt-6 text-xs text-dim/50">Você pode fechar esta página com segurança.</p>
+                </div>
+              ) : !regOpen ? (
+                <div className="text-center py-6 min-w-0">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                    <AlertCircle className="h-8 w-8" />
+                  </div>
+                  <h2 className="mt-5 font-display font-bold text-2xl sm:text-3xl text-data">Inscrições encerradas</h2>
+                  <p className="mt-3 text-sm sm:text-base text-dim/80 leading-relaxed max-w-lg mx-auto">
+                    As inscrições para o ENTEC 2026 foram encerradas pela organização.
+                  </p>
+                  <p className="mt-2 text-xs tracking-[0.16em] uppercase text-lavender/70">23 e 24 de setembro · IFTO — Campus Araguatins</p>
+                  <p className="mt-6 text-xs text-dim/50">Se você já participou, use a consulta de certificado abaixo.</p>
                 </div>
               ) : (
                 <>

@@ -120,6 +120,16 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
+    // Bloqueio via painel admin: event_settings.registrations_open = 'false'
+    // (tabela pode ainda não existir — nesse caso mantém aberto)
+    try {
+      const { data: setting } = await supabase.from("event_settings").select("value").eq("key", "registrations_open").maybeSingle();
+      const open = !setting || String((setting as Record<string, unknown>).value ?? "true").toLowerCase() !== "false";
+      if (!open) return json({ error: "Inscrições encerradas.", code: "REGISTRATIONS_CLOSED" }, 403, req);
+    } catch {
+      // ignora e segue com a inscrição
+    }
+
     // Insert registration with pending wallet
     const { data, error } = await supabase.from("event_registrations").insert({
       name,

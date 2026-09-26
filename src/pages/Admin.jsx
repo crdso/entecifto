@@ -84,6 +84,9 @@ export default function Admin() {
   const [bulkRunning, setBulkRunning] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(null);
   const [bulkResult, setBulkResult] = useState("");
+  const [regOpen, setRegOpen] = useState(true);
+  const [regOpenLoading, setRegOpenLoading] = useState(false);
+  const [regSettingsMissing, setRegSettingsMissing] = useState(false);
 
   const isAllowed = (user) => {
     if (!ADMIN_EMAIL) return false;
@@ -206,6 +209,7 @@ export default function Admin() {
       load();
       loadVisitas();
       loadParticipantes();
+      loadRegSettings();
     } else {
       setRows([]);
       setVisitas([]);
@@ -628,6 +632,74 @@ export default function Admin() {
     }
   };
 
+  // Flag de inscrições abertas/fechadas (event_settings.registrations_open)
+  const loadRegSettings = async () => {
+    if (!session?.access_token) return;
+    setRegOpenLoading(true);
+    try {
+      const data = await selectRows(
+        "event_settings",
+        "key=eq.registrations_open&select=value",
+        session.access_token
+      );
+      if (Array.isArray(data) && data.length > 0) {
+        setRegOpen(String(data[0].value ?? "true").toLowerCase() !== "false");
+        setRegSettingsMissing(false);
+      } else {
+        setRegOpen(true);
+        setRegSettingsMissing(true);
+      }
+    } catch {
+      setRegOpen(true);
+      setRegSettingsMissing(true);
+    } finally {
+      setRegOpenLoading(false);
+    }
+  };
+
+  const toggleRegistrations = async () => {
+    if (!session?.access_token || updatingId) return;
+    const next = !regOpen;
+    const ok = window.confirm(
+      next
+        ? "Reabrir as inscrições para o público no site?"
+        : "Fechar as inscrições? O site passa a mostrar “Inscrições encerradas” e novas inscrições são bloqueadas."
+    );
+    if (!ok) return;
+    setUpdatingId("reg-toggle");
+    setError("");
+    try {
+      const updated = await updateRow(
+        "event_settings",
+        "key=eq.registrations_open",
+        { value: next ? "true" : "false" },
+        session.access_token
+      );
+      if (!Array.isArray(updated) || updated.length === 0) {
+        // Tabela existe mas a linha ainda não (seed não rodado): cria
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/event_settings`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({ key: "registrations_open", value: next ? "true" : "false" }),
+        });
+        if (!res.ok) {
+          throw new Error("Tabela event_settings não encontrada. Rode supabase/event_settings.sql no SQL Editor do Supabase.");
+        }
+      }
+      setRegOpen(next);
+      setRegSettingsMissing(false);
+    } catch (e) {
+      setError(e.message || "Falha ao alternar inscrições.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const exportParticipantesCSV = () => {
     const list = filteredParticipantes;
     if (!list.length) {
@@ -934,6 +1006,49 @@ export default function Admin() {
                 Pix 0,99% · Conta 4,99% — cada linha mostra bruto, meio e líquido já descontado. 7 pagos: 3× R$60 + 4× R$55 (descontos) = R$400 bruto.
               </p>
             </div>
+
+        {/* Inscrições abertas / fechadas */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 rounded-2xl border border-signal/20 bg-void/40 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            {regOpenLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-lavender" />
+            ) : regOpen ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Inscrições abertas
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-300">
+                <X className="h-3.5 w-3.5" />
+                Inscrições fechadas
+              </span>
+            )}
+            <span className="text-xs text-dim/60">Vale para a página pública /inscricao</span>
+          </div>
+          <div className="sm:ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleRegistrations}
+              disabled={updatingId === "reg-toggle" || regOpenLoading}
+              className={`gap-2 text-data ${regOpen ? "border-amber-500/30 hover:bg-amber-500/10" : "border-emerald-500/30 hover:bg-emerald-500/10"}`}
+            >
+              {updatingId === "reg-toggle" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : regOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              {regOpen ? "Fechar inscrições" : "Reabrir inscrições"}
+            </Button>
+          </div>
+        </div>
+        {regSettingsMissing && (
+          <div className="mb-5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            Configuração ainda não criada no banco. Rode <span className="font-mono">supabase/event_settings.sql</span> no SQL Editor do Supabase para ativar o controle.
+          </div>
+        )}
 
         {/* Controles */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
