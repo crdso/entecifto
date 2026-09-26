@@ -81,6 +81,9 @@ export default function Admin() {
   const [participantesError, setParticipantesError] = useState("");
   const [participantesSearch, setParticipantesSearch] = useState("");
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState(null);
+  const [bulkResult, setBulkResult] = useState("");
 
   const isAllowed = (user) => {
     if (!ADMIN_EMAIL) return false;
@@ -542,6 +545,86 @@ export default function Admin() {
       setError(e.message || "Falha ao atualizar certificado.");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  // Ação em massa: confirma presença de todos os pendentes e libera
+  // certificado de todos os não liberados, reaproveitando os endpoints
+  // individuais já em produção (event-checkin + event-certificate-admin).
+  const confirmAllAndReleaseCertificates = async () => {
+    if (!session?.access_token || bulkRunning) return;
+    const pendentesPresenca = participantes.filter((p) => !p.attendance_confirmed);
+    const pendentesCert = participantes.filter((p) => !p.certificate_ready);
+    const total = pendentesPresenca.length + pendentesCert.length;
+    if (total === 0) {
+      setBulkResult("Tudo certo: todos já têm presença confirmada e certificado liberado.");
+      return;
+    }
+    const ok = window.confirm(
+      `Confirmar presença de ${pendentesPresenca.length} participante(s) e liberar certificado de ${pendentesCert.length}?\nTotal de ${total} atualizações.\nDá para desfazer individualmente depois, se precisar.`
+    );
+    if (!ok) return;
+    setBulkRunning(true);
+    setBulkResult("");
+    setError("");
+    setBulkProgress({ done: 0, total });
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: SUPABASE_ANON_KEY,
+    };
+    const failures = [];
+    let done = 0;
+    const runPool = async (items, task) => {
+      const CONCURRENCY = 4;
+      let i = 0;
+      const workers = Array.from({ length: Math.min(CONCURRENCY, Math.max(items.length, 1)) }, async () => {
+        while (i < items.length) {
+          const item = items[i];
+          i += 1;
+          try {
+            await task(item);
+          } catch (e) {
+            failures.push(`${item.name || item.email || item.id}: ${e.message || "erro"}`);
+          }
+          done += 1;
+          setBulkProgress({ done, total });
+        }
+      });
+      await Promise.all(workers);
+    };
+    const confirmTask = async (p) => {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-checkin`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "manual_confirm", registration_id: p.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    };
+    const certTask = async (p) => {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/event-certificate-admin`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ registration_id: p.id, enabled: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    };
+    try {
+      await runPool(pendentesPresenca, confirmTask);
+      await runPool(pendentesCert, certTask);
+      await loadParticipantes();
+      setBulkResult(
+        failures.length === 0
+          ? `Concluído: ${pendentesPresenca.length} presença(s) confirmada(s) e ${pendentesCert.length} certificado(s) liberado(s).`
+          : `Concluído com ${failures.length} falha(s): ${failures.slice(0, 5).join(" • ")}${failures.length > 5 ? "…" : ""}`
+      );
+    } catch (e) {
+      setError(e.message || "Falha na ação em massa.");
+    } finally {
+      setBulkRunning(false);
+      setBulkProgress(null);
     }
   };
 
@@ -1055,6 +1138,21 @@ export default function Admin() {
                 <QrCode className="h-5 w-5 sm:h-4 sm:w-4" />
                 Escanear QR
               </Button>
+              <Button
+                onClick={confirmAllAndReleaseCertificates}
+                disabled={bulkRunning || participantesLoading || participantes.length === 0}
+                className="w-full sm:w-auto gap-2 bg-emerald-500 text-void hover:bg-emerald-400 font-bold text-sm px-6 py-3.5 sm:py-2.5 rounded-full shadow-[0_8px_24px_rgba(16,185,129,0.25)] transition-all text-base sm:text-sm disabled:opacity-50"
+                title="Confirma a presença de todos os pendentes e libera o certificado de todos"
+              >
+                {bulkRunning ? (
+                  <Loader2 className="h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
+                ) : (
+                  <BadgeCheck className="h-5 w-5 sm:h-4 sm:w-4" />
+                )}
+                {bulkRunning && bulkProgress
+                  ? `Processando ${bulkProgress.done}/${bulkProgress.total}…`
+                  : "Presença + certificado (todos)"}
+              </Button>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="relative sm:w-72 flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-dim/50" />
@@ -1078,6 +1176,11 @@ export default function Admin() {
               </div>
             </div>
 
+            {bulkResult && (
+              <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                {bulkResult}
+              </div>
+            )}
             {participantesError && (
               <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
                 {participantesError}
