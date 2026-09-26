@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
   try {
     const templateBytes = await Deno.readFile(new URL("./assets/CERTIFICADO.jpg", import.meta.url));
     const fontBytes = await Deno.readFile(new URL("./assets/AbrilFatface-Regular.ttf", import.meta.url));
+    const signatureBytes = await Deno.readFile(new URL("./assets/assinatura-ancelmo.png", import.meta.url));
 
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
@@ -132,6 +133,7 @@ Deno.serve(async (req) => {
       ? await pdfDoc.embedJpg(templateBytes)
       : await pdfDoc.embedPng(templateBytes);
     const font = await pdfDoc.embedFont(fontBytes);
+    const signatureImage = await pdfDoc.embedPng(signatureBytes);
 
     // A4 horizontal
     const PAGE_WIDTH = 841.89;
@@ -175,6 +177,23 @@ Deno.serve(async (req) => {
       size: fontSize,
       font,
       color: rgb(1, 1, 1),
+    });
+
+    // Assinatura do coordenador — medidas a partir do canto superior
+    // esquerdo (editor de referência). pdf-lib usa origem no canto inferior
+    // esquerdo e drawImage posiciona pelo canto inferior esquerdo da imagem.
+    const CM_TO_PT = 28.3464567;
+    const SIG_X_CM = 7.73;
+    const SIG_Y_TOP_CM = 15.63;
+    const SIG_W_CM = 4.63;
+    const SIG_H_CM = 3.27;
+    const sigW = SIG_W_CM * CM_TO_PT;
+    const sigH = SIG_H_CM * CM_TO_PT;
+    page.drawImage(signatureImage, {
+      x: SIG_X_CM * CM_TO_PT,
+      y: PAGE_HEIGHT - SIG_Y_TOP_CM * CM_TO_PT - sigH,
+      width: sigW,
+      height: sigH,
     });
 
     const pdfBytes = await pdfDoc.save();
