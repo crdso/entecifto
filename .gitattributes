@@ -1,0 +1,11 @@
+# Quebras de linha LF em todos os ambientes (Windows local e Linux da Netlify).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.glb binary

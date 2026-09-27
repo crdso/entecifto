@@ -2,5 +2,6 @@
 verify_jwt = false
 static_files = [
   "./functions/event-certificate/assets/CERTIFICADO.jpg",
-  "./functions/event-certificate/assets/AbrilFatface-Regular.ttf"
+  "./functions/event-certificate/assets/AbrilFatface-Regular.ttf",
+  "./functions/event-certificate/assets/assinatura-ancelmo.png"
 ]

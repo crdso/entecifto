@@ -1,0 +1,59 @@
+/* Ajustes de junção; a geometria e os efeitos continuam nos arquivos originais. */
+html { scroll-behavior: smooth; }
+body { background: #000; overflow-x: clip; }
+.uh-page { font-family: Sora, sans-serif; background: #000; }
+.uh-title { font-family: Sora, sans-serif; }
+.uh-bar { position: relative; }
+.uh-drop { position: absolute; top: 104px; right: max(30px, calc((100% - 1240px) / 2)); }
+.uh-page a:focus-visible, .uh-page button:focus-visible { outline: 3px solid #8d7cff; outline-offset: 5px; }
+#galeria { position: relative; isolation: isolate; background: #000; }
+.integration-placeholder { display: none; color: white; background: #000; font-family: Sora, sans-serif; padding: 80px max(24px, calc((100% - 1100px) / 2)); }
+.integration-placeholder:target { display: block; }
+.integration-placeholder span { font-size: 12px; letter-spacing: .15em; color: #a99cfe; }
+.integration-placeholder h2 { font-size: clamp(28px, 5vw, 48px); margin: 20px 0; }
+.integration-placeholder p { color: #bbb; font-size: 16px; line-height: 1.6; }
+.integration-placeholder a { display: inline-block; margin-top: 28px; color: white; }
+@media (max-width: 809.98px) {
+  .uh-btnblack { display: block; }
+  .uh-right { gap: 10px; }
+  .uh-btnblack { padding: 14px 20px; }
+  .uh-drop { right: 20px; top: 96px; }
+  /* Mesmo gradiente mobile de .framer-1dfwjp5 na hero original. */
+  .uh-bg { background: radial-gradient(150% 30% at 50.5333% .853789%,#fff 22.9436%,#eeecff 28.3643%,#dad6ff 33.2604%,#aea6fb 40.2947%,#7e72e7 46.6164%,#574abc 52.9953%,#2d2285 60.6561%,#190f65 66.2877%,#07003e 72.7383%,#000 89.9086%); }
+  .uh-hero { height: 100svh; min-height: 720px; padding: 0; display: block; isolation: isolate; }
+  /* Elimina o contexto z=2 do container, permitindo conteúdo à frente do robô. */
+  .uh-container, .uh-content, .uh-row { display: contents; }
+  .uh-side { position: absolute; z-index: 4; top: clamp(126px, 17svh, 164px); left: 20px; right: 20px; color: #fff; font-size: 19px; text-align: center; max-width: none; }
+  .uh-title { position: absolute; z-index: 2; left: 0; bottom: clamp(85px, 11svh, 110px); width: 100%; font-size: clamp(86px, 24vw, 110px); line-height: .9; text-align: center; white-space: nowrap; }
+  .uh-title .uh-year { display: none; }
+  .uh-robot { position: absolute; z-index: 3; width: min(130%, 680px, calc((max(100svh, 720px) - 330px) * 1.03313)); height: auto; aspect-ratio: 1.03313; left: 50%; translate: -50% 0; bottom: 0; }
+  .uh-card { position: absolute; z-index: 4; top: clamp(198px, 23svh, 220px); left: 20px; width: calc(100% - 40px); max-width: none; gap: 8px; padding: 15px; }
+  .uh-card-small { font-size: 14px; }
+  .uh-card-big { font-size: clamp(24px, 6.4vw, 28px); }
+  /* Mantém o componente 1200px e sua perspectiva originais. Só posiciona o wrapper. */
+  #galeria .framer-ops1bo { height: 100svh; min-height: 720px; }
+  #galeria .framer-h75lqc { position: absolute; top: clamp(144px, 20svh, 192px); left: 20px; width: calc(100% - 40px); }
+  #galeria [data-framer-name="Middle"] > [data-framer-name="Content Wrapper"] { top: 0 !important; gap: 15px; }
+  #galeria .framer-1ktal5b p { --framer-font-size: clamp(36px, 10vw, 44px) !important; }
+  #galeria .framer-9h7rl-container { position: absolute !important; top: calc(60% - 150px) !important; }
+}
+/* A região Bottom original fica no fim da seção, sem deslocar o desktop. */
+#galeria .framer-w5qk97:has(.entec-footer) { display: flex !important; position: absolute; bottom: max(20px, env(safe-area-inset-bottom)); left: 0; width: 100%; padding: 12px 16px; gap: 0; }
+.entec-footer { color: #c4c4cc; font-family: "Zalando Sans", sans-serif; font-size: clamp(11px, 2.7vw, 13px); line-height: 1.7; text-align: center; }
+.entec-footer p { margin: 0; }
+@media (max-width: 380px) {
+  .uh-side { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Prévia de Fotos: mesmo fundo da hero (.uh-bg + .uh-shader + hero-shader.js),
+   espelhado na vertical para continuar do tom escuro em que a hero termina. */
+#galeria > .preview-bg, #galeria > .preview-shader { position: absolute; inset: 0; transform: scaleY(-1); }
+#galeria > .preview-bg { z-index: 0; }
+#galeria > .preview-shader { z-index: 1; }
+#galeria > #main { position: relative; z-index: 2; }
+#galeria .framer-72rtr7 { background-color: transparent !important; }
+/* O rodapé fica sobre o brilho claro do gradiente. */
+#galeria .entec-footer { color: rgba(27, 19, 62, .72); }
+/* O Frame 5 do carrossel ocupava exatamente as posições do Frame 4 (z-fighting). */
+#galeria .framer-qqaimq { visibility: hidden; }

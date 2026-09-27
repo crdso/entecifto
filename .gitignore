@@ -1,35 +1,33 @@
-#env
+# Segredos locais (nunca versionar)
 .env
 .env.*
-.env.local
-
-# Logs
-/logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
 *.local
+.r2.env
+.r2.dev
 
-# Editor directories and files
+# Build e dependências
+dist/
+node_modules/
+.netlify/
+.wrangler/
+.venv/
+__pycache__/
+*.pyc
+
+# Supabase CLI (estado local)
+supabase/.temp/
+supabase/.branches/
+
+# Fotos e arquivos de trabalho da importação da galeria
+Fotos ENTEC 2026/
+originals/
+thumbs/
+*.log
+
+# Editor / SO
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-.env
-.vite
-.claude
-vite-dev.log
-supabase/.temp
+.claude/
+.agents/

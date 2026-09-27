@@ -1,14 +1,21 @@
-# Configuração de build para o Netlify
+# Site ENTEC 2026 — publicado na Netlify a partir do repositório crdso/entecifto.
+# O build copia site/ para dist/, gera dist/env.js e valida links, CSP e manifesto da galeria.
 [build]
-  command = "npm run build"
+  command = "node scripts/build.mjs"
   publish = "dist"
 
-# Versão do Node usada no build (Vite precisa de Node 18+)
 [build.environment]
   NODE_VERSION = "20"
 
-# As variáveis abaixo devem ser cadastradas no painel do Netlify:
-# Site -> Site configuration -> Environment variables
+# Variáveis obrigatórias no painel da Netlify (Site configuration -> Environment variables),
+# as mesmas do site anterior:
 #   VITE_SUPABASE_URL
-#   VITE_SUPABASE_ANON_KEY
+#   VITE_SUPABASE_ANON_KEY   (chave pública anon; o build recusa qualquer outra)
 #   VITE_ADMIN_EMAIL
+
+[functions]
+  directory = "netlify/functions"
+
+# /api/foto        -> netlify/functions/foto.mjs        (download de 1 original, attachment)
+# /api/resultados  -> netlify/functions/resultados.mjs  (pódio público, mesma origem)
+# /api/zip/*       -> netlify/edge-functions/zip.js     (ZIP das selecionadas, streaming)

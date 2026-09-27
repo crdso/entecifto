@@ -1,0 +1,183 @@
+/* HERO — valores copiados da composição original da hero.
+   Classes originais de referência entre parênteses.
+   Desktop >=1360px = variante original; tablet 810-1359; phone <810.
+*/
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Sora","Sora Placeholder",sans-serif;
+  background:#f5f5f5;
+  -webkit-font-smoothing:antialiased;
+}
+.uh-page{position:relative;width:100%;background:#f5f5f5}
+
+/* ---------- HEADER (.framer-t6mh05: absolute, top 0, left 50%, z 9, transparente, fino) ---------- */
+.uh-header{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:100%;z-index:9;
+  display:flex;flex-direction:column;align-items:center;
+  animation:uhHeaderIn .8s cubic-bezier(.22,.8,.28,1) both;
+}
+@keyframes uhHeaderIn{
+  from{opacity:.001;transform:translateX(-50%) translateY(-40px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+/* barra interna (.framer-1a2b7js: 1300px, padding 20px 0, space-between) */
+.uh-bar{
+  width:1300px;max-width:100%;
+  padding:20px 30px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.uh-logo{display:flex;align-items:center;text-decoration:none}
+/* asset é um ícone quadrado 320x320 (não lockup horizontal): altura manda, largura auto */
+.uh-logo img{display:block;height:76px;width:auto;object-fit:contain}
+/* direita (.framer-7zhi64) */
+.uh-right{display:flex;align-items:center;gap:16px}
+/* botão-ícone: círculo preto com hambúrguer (.framer-1qcd3r3 radius 100px + icon 27px) */
+.uh-iconbtn{
+  width:48px;height:48px;border:0;cursor:pointer;
+  background:#000;border-radius:100px;
+  display:grid;place-items:center;padding:0;
+}
+.uh-iconbtn img{width:27px;height:27px;display:block}
+/* botão preto pill (.framer Button Black radius 51px, texto branco) */
+.uh-btnblack{
+  background:#000;color:#fff;text-decoration:none;
+  border-radius:51px;padding:14px 28px;
+  font-family:"Inter",sans-serif;font-size:15px;line-height:1;white-space:nowrap;
+}
+.uh-btnblack:hover{opacity:.82}
+/* dropdown minimalista (original tem menu suspenso branco; links internos quebrados fora de contexto) */
+.uh-drop{
+  display:none;flex-direction:column;gap:2px;
+  background:#fff;border:1px solid #e4e4e4;border-radius:10px;
+  padding:8px;min-width:220px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+.uh-drop.open{display:flex}
+.uh-drop a{
+  color:#000;text-decoration:none;font-family:"Inter",sans-serif;font-size:14px;
+  padding:10px 14px;border-radius:6px;
+}
+.uh-drop a:hover{background:#f1f1f1}
+
+/* ---------- HERO (.framer-qmbuue: padding 370px 30px 80px, overflow hidden) ---------- */
+.uh-hero{
+  position:relative;overflow:hidden;
+  width:100%;
+  padding:240px 30px 60px;
+  display:flex;flex-direction:column;align-items:center;
+}
+/* fundo base EXATO (.framer-1dfwjp5, z 0) */
+.uh-bg{
+  position:absolute;inset:0;z-index:0;
+  background:radial-gradient(153.944% 89.968% at 50.5333% .853789%,#fff 22.9436%,#eeecff 28.3643%,#dad6ff 33.2604%,#aea6fb 40.2947%,#7e72e7 46.6164%,#574abc 52.9953%,#2d2285 60.6561%,#190f65 66.2877%,#07003e 72.7383%,#000 89.9086%);
+}
+/* shader animado (.framer-nnwkat-container: absolute inset 0, z 1, opacity .2) */
+.uh-shader{position:absolute;inset:0;z-index:1;opacity:.2;pointer-events:none}
+.uh-shader canvas{display:block;width:100%;height:100%}
+/* robô (.framer-14yw6nt: 842x815, absolute bottom 0, z 3 — NA FRENTE do título) */
+.uh-robot{
+  position:absolute;z-index:3;
+  width:842px;height:815px;
+  left:calc(50% - 421px);bottom:-60px;
+  overflow:hidden;pointer-events:none;
+  animation:uhRobotIn 1s cubic-bezier(.22,.8,.28,1) .1s both;
+}
+.uh-robot img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+@keyframes uhRobotIn{
+  from{opacity:0;transform:translateY(80px)}
+  to{opacity:1;transform:none}
+}
+/* container (.framer-d1a27o: relativo, z 2 — ATRÁS do robô, max 1300px) */
+.uh-container{
+  position:relative;z-index:2;
+  width:100%;max-width:1300px;
+}
+/* content (.framer-1svszcu: coluna, gap 110px — compactado p/ 70px p/ título caber na viewport) */
+.uh-content{display:flex;flex-direction:column;align-items:center;gap:70px;width:100%}
+/* linha texto+card (.framer-u80356: row, space-between, center) */
+.uh-row{
+  display:flex;flex-direction:row;justify-content:space-between;align-items:center;
+  width:100%;
+}
+/* texto lateral (.framer-emmrm2: max 364px; h6 Sora 24px/132% branco) */
+.uh-side{
+  margin:0;max-width:364px;flex:1 0 0;
+  color:#fff;font-size:24px;line-height:132%;font-weight:400;
+}
+/* card (.framer-mnqS8/framer-16yfxsm: 350px, padding 20px, gap 50px, coluna;
+   glass blur 7px, radius 12px) */
+.uh-card{
+  flex:1 0 0;width:1px;max-width:350px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  border-radius:12px;padding:20px;
+  display:flex;flex-direction:column;align-items:center;gap:50px;
+  color:#fff;text-decoration:none;
+}
+/* texto pequeno do card (preset Inter 16px/150%, branco) */
+.uh-card-small{font-family:"Inter",sans-serif;font-size:16px;line-height:150%;color:#fff;width:100%}
+/* linha interna (space-between, center) */
+.uh-card-row{display:flex;justify-content:space-between;align-items:center;width:100%}
+/* destaque (h5 Sora 28px/128% branco) */
+.uh-card-big{font-size:28px;line-height:128%;font-weight:400;color:#fff;white-space:nowrap}
+/* seta 40px (svg original #svg1464243405_237) */
+.uh-card-arrow{width:40px;height:40px;flex:none}
+.uh-card-arrow svg{width:100%;height:100%;display:block}
+.uh-card:hover{border-color:rgba(255,255,255,.45)}
+/* título gigante (preset Sora 221px/90%, uppercase, branco, centro no desktop) */
+.uh-title{
+  margin:0;width:100%;
+  font-weight:400;text-transform:uppercase;
+  font-size:221px;line-height:90%;letter-spacing:0;
+  color:#fff;text-align:center;white-space:nowrap;
+}
+.uh-title .ch{
+  display:inline-block;opacity:.001;
+  transform:translateY(130px);
+  animation:uhChIn .9s cubic-bezier(.22,.8,.28,1) forwards;
+  animation-delay:var(--d,0s);
+  will-change:transform,opacity;
+}
+@keyframes uhChIn{to{opacity:1;transform:none}}
+
+/* ---------- TABLET 810–1359 (variante original) ---------- */
+@media (min-width:810px) and (max-width:1359.98px){
+  .uh-hero{padding:120px 30px 50px}
+  .uh-bar{padding:20px 30px}
+  .uh-robot{
+    width:42%;height:auto;aspect-ratio:1.03313;
+    left:50%;transform:translateX(-50%);bottom:0;
+    animation-name:uhRobotInC;
+  }
+  @keyframes uhRobotInC{
+    from{opacity:0;transform:translateX(-50%) translateY(80px)}
+    to{opacity:1;transform:translateX(-50%) translateY(0)}
+  }
+  .uh-title{font-size:120px}
+  .uh-side{font-size:20px}
+  .uh-card-big{font-size:24px}
+}
+/* ---------- PHONE <810 (variante original: coluna, robô relativo) ---------- */
+@media (max-width:809.98px){
+  .uh-hero{padding:110px 20px 0;align-items:flex-start}
+  .uh-bar{padding:16px 20px}
+  .uh-btnblack{display:none}
+  .uh-content{gap:30px;align-items:flex-start}
+  .uh-row{flex-direction:column;align-items:flex-start;gap:30px}
+  .uh-side{font-size:19px;max-width:100%}
+  .uh-card{width:100%;max-width:none}
+  .uh-title{font-size:46px;text-align:left;white-space:normal}
+  .uh-robot{
+    position:relative;order:3;
+    width:100%;height:auto;aspect-ratio:1.03313;
+    left:auto;bottom:auto;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .uh-header,.uh-robot,.uh-title .ch{animation:none;opacity:1;transform:none}
+  .uh-header{transform:translateX(-50%)}
+}

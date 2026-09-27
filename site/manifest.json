@@ -1,0 +1,13 @@
+{
+  "name": "ENTEC 2026 - Encontro de Tecnologia do IFTO",
+  "short_name": "ENTEC 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05030d",
+  "theme_color": "#07003e",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

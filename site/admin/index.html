@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!--ENTEC:HEAD-->
+  <title>Administração | ENTEC 2026</title>
+  <meta name="description" content="Painel administrativo do ENTEC 2026.">
+  <meta name="theme-color" content="#07003e">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <!--/ENTEC:HEAD-->
+  <link rel="stylesheet" href="/fonts.css">
+  <link rel="stylesheet" href="/hero.css">
+  <link rel="stylesheet" href="/certificado/certificado.css">
+  <link rel="stylesheet" href="/admin/admin.css?v=1">
+  <script src="/hero-shader.js?v=4" defer></script>
+  <script src="/admin/vendor/supabase-2.110.9.js" defer></script>
+  <script src="/admin/vendor/jspdf-4.2.1.umd.min.js" defer></script>
+  <script src="/admin/vendor/zxing-browser-0.2.1.min.js" defer></script>
+  <script type="module" src="/admin/admin.js?v=1"></script>
+</head>
+<body>
+  <div class="cert-page admin-page">
+    <div class="uh-bg" aria-hidden="true"></div>
+    <div class="uh-shader" aria-hidden="true"><canvas id="uh-canvas"></canvas></div>
+
+    <header class="cert-header">
+      <a class="cert-logo" href="/" aria-label="ENTEC 2026 — início">
+        <img src="/assets/entec-icon-header.webp" alt="ENTEC" width="76" height="76">
+      </a>
+      <div class="cert-header-right">
+        <span class="cert-header-note">Painel administrativo <span class="cert-header-separator" aria-hidden="true"></span> 2026</span>
+        <div class="admin-session" id="admin-session" hidden>
+          <div class="admin-menu" id="admin-export">
+            <button class="admin-btn admin-btn-ghost" id="admin-export-button" type="button" aria-haspopup="true" aria-expanded="false">Download</button>
+            <div class="admin-menu-list" id="admin-export-list" role="menu" hidden>
+              <p class="admin-menu-label">Exportar inscrições (PDF)</p>
+              <button type="button" role="menuitem" data-pdf="completo">PDF completo (todos os dados)</button>
+              <button type="button" role="menuitem" data-pdf="resumido">PDF resumido — nome, camisa, gênero, tamanho</button>
+            </div>
+          </div>
+          <button class="admin-btn admin-btn-ghost" id="admin-logout" type="button">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="admin-loading" id="admin-boot" aria-live="polite">
+        <span class="admin-spinner" aria-hidden="true"></span>
+        <p>Carregando painel…</p>
+      </section>
+
+      <section class="admin-login" id="admin-login" hidden aria-labelledby="admin-login-title">
+        <div class="admin-login-intro">
+          <p class="admin-kicker">ENTEC 2026 · ACESSO RESTRITO</p>
+          <h1 id="admin-login-title">Painel <em>administrativo</em></h1>
+          <p>Entre com a conta da organização para gerenciar inscrições, presenças, certificados e resultados.</p>
+        </div>
+        <form class="admin-login-card" id="admin-login-form" novalidate>
+          <p class="admin-alert admin-alert-error" id="admin-login-error" role="alert" hidden></p>
+          <label class="admin-field">
+            <span>E-mail</span>
+            <input id="admin-email" type="email" autocomplete="email" placeholder="admin@exemplo.com" required>
+          </label>
+          <label class="admin-field">
+            <span>Senha</span>
+            <input id="admin-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          </label>
+          <button class="admin-btn admin-btn-primary admin-btn-block" id="admin-login-submit" type="submit">Entrar</button>
+        </form>
+      </section>
+
+      <section class="admin-app" id="admin-app" hidden>
+        <div class="admin-title">
+          <div>
+            <p class="admin-kicker">ENTEC 2026</p>
+            <h1>Painel <em>administrativo</em></h1>
+          </div>
+          <p class="admin-user" id="admin-user"></p>
+        </div>
+
+        <nav class="admin-tabs" role="tablist" aria-label="Seções do painel">
+          <button type="button" role="tab" data-tab="inscricoes" aria-selected="true">Inscrições</button>
+          <button type="button" role="tab" data-tab="participantes" aria-selected="false">Participantes <span class="admin-tab-count" id="tab-count-participantes" hidden></span></button>
+          <button type="button" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
+          <button type="button" role="tab" data-tab="resultados" aria-selected="false">Resultados</button>
+        </nav>
+
+        <p class="admin-alert admin-alert-error" id="admin-error" role="alert" hidden></p>
+
+        <!-- Inscrições (camisas) -->
+        <div class="admin-panel" data-panel="inscricoes">
+          <div class="admin-stats" id="insc-stats"></div>
+
+          <div class="admin-card admin-finance">
+            <h2>Financeiro — bate com R$ 393,81 em conta</h2>
+            <dl id="insc-finance"></dl>
+            <p class="admin-note">Pix 0,99% · Conta 4,99% — cada linha mostra bruto, meio e líquido já descontado. 7 pagos: 3× R$60 + 4× R$55 (descontos) = R$400 bruto.</p>
+          </div>
+
+          <div class="admin-card admin-reg">
+            <div class="admin-reg-state" id="reg-state"></div>
+            <span class="admin-note">Vale para a página pública /inscricao</span>
+            <button class="admin-btn admin-btn-ghost" id="reg-toggle" type="button"></button>
+          </div>
+          <p class="admin-alert admin-alert-warn" id="reg-missing" hidden>Configuração ainda não criada no banco. Rode <code>supabase/event_settings.sql</code> no SQL Editor do Supabase para ativar o controle.</p>
+
+          <div class="admin-toolbar">
+            <div class="admin-filters" id="insc-filters" role="group" aria-label="Filtrar por status">
+              <button type="button" data-filter="todos" aria-pressed="true">Todos</button>
+              <button type="button" data-filter="pending_payment" aria-pressed="false">Pendente</button>
+              <button type="button" data-filter="pago" aria-pressed="false">Pago</button>
+            </div>
+            <label class="admin-search"><span class="sr-only">Buscar inscrições</span><input id="insc-search" type="search" placeholder="Buscar por nome ou e-mail"></label>
+          </div>
+
+          <div class="admin-table-wrap" id="insc-table"></div>
+        </div>
+
+        <!-- Participantes (event_registrations) -->
+        <div class="admin-panel" data-panel="participantes" hidden>
+          <div class="admin-stats" id="part-stats"></div>
+          <div class="admin-toolbar">
+            <div class="admin-actions">
+              <button class="admin-btn admin-btn-primary" id="part-scan" type="button">Escanear QR</button>
+              <button class="admin-btn admin-btn-ghost" id="part-bulk" type="button" title="Confirma a presença de todos os pendentes e libera o certificado de todos">Presença + certificado (todos)</button>
+            </div>
+            <div class="admin-actions">
+              <label class="admin-search"><span class="sr-only">Buscar participantes</span><input id="part-search" type="search" placeholder="Buscar por nome ou e-mail"></label>
+              <button class="admin-btn admin-btn-ghost" id="part-refresh" type="button">Atualizar</button>
+              <button class="admin-btn admin-btn-ghost" id="part-csv" type="button">CSV</button>
+            </div>
+          </div>
+          <p class="admin-alert admin-alert-ok" id="part-bulk-result" hidden></p>
+          <p class="admin-alert admin-alert-error" id="part-error" hidden></p>
+          <div class="admin-table-wrap" id="part-table"></div>
+          <p class="admin-note">CPF exibido apenas com 4 últimos dígitos. Dados sensíveis protegidos por hash no banco.</p>
+        </div>
+
+        <!-- Visitas -->
+        <div class="admin-panel" data-panel="visitas" hidden>
+          <div class="admin-stats" id="vis-stats"></div>
+          <div class="admin-toolbar"><span></span><button class="admin-btn admin-btn-ghost" id="vis-refresh" type="button">Atualizar</button></div>
+          <p class="admin-alert admin-alert-error" id="vis-error" hidden></p>
+          <div class="admin-table-wrap" id="vis-table"></div>
+          <p class="admin-note">Atualiza em tempo real via Supabase Realtime. Mostrando até 200 acessos mais recentes.</p>
+        </div>
+
+        <!-- Resultados dos stands -->
+        <div class="admin-panel" data-panel="resultados" hidden>
+          <div class="admin-card">
+            <h2>Resultados — Notas dos stands</h2>
+            <p class="admin-note">Lance a nota de cada grupo (0 a 100). O site classifica sozinho pela maior nota — empate é desempatado por ordem alfabética. Salvar não divulga: o público só vê após “Liberar resultados”.</p>
+            <div id="res-state"></div>
+          </div>
+          <p class="admin-alert admin-alert-error" id="res-error" hidden></p>
+          <p class="admin-alert admin-alert-ok" id="res-notice" hidden></p>
+          <div class="admin-scores" id="res-scores"></div>
+          <div class="admin-card">
+            <p class="admin-kicker">Prévia da classificação</p>
+            <ol class="admin-ranking" id="res-ranking"></ol>
+          </div>
+          <div class="admin-actions">
+            <button class="admin-btn admin-btn-ghost" id="res-save" type="button">Salvar notas</button>
+            <button class="admin-btn admin-btn-primary" id="res-release" type="button">Liberar resultados</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="cert-footer"><span>© 2026 ENTEC · Instituto Federal do Tocantins</span><span>dev: cardoso</span></footer>
+  </div>
+
+  <!-- Confirmação da divulgação dos resultados -->
+  <dialog class="admin-dialog" id="res-confirm" aria-labelledby="res-confirm-title">
+    <h3 id="res-confirm-title">Liberar resultados?</h3>
+    <p>Tem certeza que deseja divulgar oficialmente o pódio? Após a liberação, os visitantes poderão visualizar os vencedores e as notas.</p>
+    <div class="admin-dialog-podium" id="res-confirm-podium"></div>
+    <div class="admin-actions admin-actions-end">
+      <button class="admin-btn admin-btn-ghost" id="res-confirm-cancel" type="button">Cancelar</button>
+      <button class="admin-btn admin-btn-primary" id="res-confirm-ok" type="button">Liberar resultados</button>
+    </div>
+  </dialog>
+
+  <!-- Credenciamento por QR -->
+  <dialog class="admin-scanner" id="scanner" aria-labelledby="scanner-title">
+    <div class="admin-scanner-top">
+      <div>
+        <h3 id="scanner-title">Credenciamento</h3>
+        <p>Aponte para o QR da credencial</p>
+      </div>
+      <div class="admin-actions">
+        <button class="admin-btn admin-btn-ghost" id="scanner-torch" type="button" hidden>Lanterna</button>
+        <button class="admin-btn admin-btn-ghost" id="scanner-manual" type="button">Digitar código</button>
+        <button class="admin-btn admin-btn-ghost" id="scanner-close" type="button" aria-label="Fechar credenciamento">Fechar</button>
+      </div>
+    </div>
+    <div class="admin-scanner-stage">
+      <video id="scanner-video" playsinline muted></video>
+      <div class="admin-scanner-frame" aria-hidden="true"></div>
+      <p class="admin-scanner-camera-error" id="scanner-camera-error" hidden></p>
+      <div class="admin-scanner-feedback" id="scanner-feedback" role="status" aria-live="assertive" hidden></div>
+    </div>
+    <form class="admin-scanner-form" id="scanner-form" hidden>
+      <input id="scanner-code" autocomplete="off" autocapitalize="characters" placeholder="ENTEC26-XXXXXXXXXXXX" aria-label="Código da credencial">
+      <button class="admin-btn admin-btn-primary" type="submit">Confirmar</button>
+    </form>
+  </dialog>
+</body>
+</html>

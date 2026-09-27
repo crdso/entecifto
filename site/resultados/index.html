@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--ENTEC:HEAD-->
+  <title>Resultados dos Stands | ENTEC 2026</title>
+  <meta name="description" content="Acompanhe a divulgação oficial do pódio dos stands do ENTEC 2026.">
+  <meta name="theme-color" content="#07003e">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://entecifto.online/resultados">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="ENTEC 2026">
+  <meta property="og:title" content="Resultados dos Stands | ENTEC 2026">
+  <meta property="og:description" content="Acompanhe a divulgação oficial do pódio dos stands do ENTEC 2026.">
+  <meta property="og:url" content="https://entecifto.online/resultados">
+  <meta property="og:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ENTEC 2026 — Futuro conectado: como a tecnologia está redesenhando o mundo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Resultados dos Stands | ENTEC 2026">
+  <meta name="twitter:description" content="Acompanhe a divulgação oficial do pódio dos stands do ENTEC 2026.">
+  <meta name="twitter:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <!--/ENTEC:HEAD-->
+  <base href="/resultados/">
+  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../hero.css">
+  <link rel="stylesheet" href="../integration.css">
+  <link rel="stylesheet" href="../certificado/certificado.css">
+  <link rel="stylesheet" href="./resultados.css">
+  <script src="../hero-shader.js" defer></script>
+  <script type="module" src="./resultados.js?v=2"></script>
+  <script type="module" src="/visitas.js"></script>
+</head>
+<body>
+  <div class="cert-page results-page">
+    <div class="uh-bg" aria-hidden="true"></div>
+    <div class="uh-shader" aria-hidden="true"><canvas id="uh-canvas"></canvas></div>
+
+    <header class="cert-header">
+      <a class="cert-logo" href="/" aria-label="ENTEC 2026 — início">
+        <img src="../assets/entec-icon-header.webp" alt="ENTEC" width="76" height="76">
+      </a>
+      <div class="cert-header-right">
+        <span class="cert-header-note">Instituto Federal do Tocantins <span class="cert-header-separator" aria-hidden="true"></span> 2026</span>
+        <button class="cert-menu-button" id="results-menu-button" type="button" aria-label="Abrir menu" aria-controls="results-menu" aria-expanded="false">
+          <img src="../assets/icon-menu.svg" width="27" height="27" alt="">
+        </button>
+      </div>
+      <nav class="cert-menu" id="results-menu" aria-label="Menu">
+        <a href="/">Início</a>
+        <a href="/galeria">Galeria</a>
+        <a href="/resultados" aria-current="page">Resultado dos stands</a>
+        <a href="/certificado">Certificado</a>
+        <a href="/sobre">Sobre</a>
+      </nav>
+    </header>
+
+    <main class="results-main">
+      <div class="results-state" id="results-state" role="status" aria-live="polite">
+        <span class="results-loading-ring" aria-hidden="true"></span>
+        <h2 id="results-state-title">Consultando o resultado oficial</h2>
+        <p id="results-state-detail">Buscando a classificação publicada pela organização.</p>
+        <button class="results-retry" id="results-retry" type="button" hidden>Tentar novamente <span aria-hidden="true">↗</span></button>
+      </div>
+
+      <section class="results-content" id="results-content" aria-labelledby="results-podium-title" hidden>
+        <div class="results-section-head">
+          <div><p class="results-section-label">CLASSIFICAÇÃO OFICIAL</p><h1 id="results-podium-title">O pódio<span>.</span></h1></div>
+          <p>Os três primeiros colocados<br>do ENTEC 2026</p>
+        </div>
+        <div class="results-podium" id="results-podium"></div>
+        <p class="results-source">Nomes e notas consultados diretamente do resultado oficial publicado.</p>
+      </section>
+    </main>
+
+    <footer class="cert-footer"><span>© 2026 ENTEC · Instituto Federal do Tocantins</span><span>dev: cardoso</span></footer>
+  </div>
+</body>
+</html>

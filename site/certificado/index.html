@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--ENTEC:HEAD-->
+  <title>Certificado | ENTEC 2026</title>
+  <meta name="description" content="Consulte e baixe seu certificado de participação no ENTEC 2026.">
+  <meta name="theme-color" content="#07003e">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://entecifto.online/certificado">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="ENTEC 2026">
+  <meta property="og:title" content="Certificado | ENTEC 2026">
+  <meta property="og:description" content="Consulte e baixe seu certificado de participação no ENTEC 2026.">
+  <meta property="og:url" content="https://entecifto.online/certificado">
+  <meta property="og:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ENTEC 2026 — Futuro conectado: como a tecnologia está redesenhando o mundo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Certificado | ENTEC 2026">
+  <meta name="twitter:description" content="Consulte e baixe seu certificado de participação no ENTEC 2026.">
+  <meta name="twitter:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <!--/ENTEC:HEAD-->
+  <base href="/certificado/">
+  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../hero.css">
+  <link rel="stylesheet" href="../integration.css">
+  <link rel="stylesheet" href="./certificado.css">
+  <script src="../hero-shader.js" defer></script>
+  <script type="module" src="./certificado.js"></script>
+  <script type="module" src="/visitas.js"></script>
+</head>
+<body>
+  <div class="cert-page">
+    <div class="uh-bg" aria-hidden="true"></div>
+    <div class="uh-shader" aria-hidden="true"><canvas id="uh-canvas"></canvas></div>
+
+    <header class="cert-header">
+      <a class="cert-logo" href="/" aria-label="ENTEC 2026 — início">
+        <img src="../assets/entec-icon-header.webp" alt="ENTEC" width="76" height="76">
+      </a>
+      <div class="cert-header-right">
+        <span class="cert-header-note">Instituto Federal do Tocantins <span class="cert-header-separator" aria-hidden="true"></span> 2026</span>
+        <button class="cert-menu-button" id="cert-menu-button" type="button" aria-label="Abrir menu" aria-controls="cert-menu" aria-expanded="false">
+          <img src="../assets/icon-menu.svg" width="27" height="27" alt="">
+        </button>
+      </div>
+      <nav class="cert-menu" id="cert-menu" aria-label="Menu">
+        <a href="/">Início</a>
+        <a href="/galeria">Galeria</a>
+        <a href="/resultados">Resultado dos stands</a>
+        <a href="/certificado" aria-current="page">Certificado</a>
+        <a href="/sobre">Sobre</a>
+      </nav>
+    </header>
+
+    <main class="cert-main">
+      <div class="cert-intro">
+        <p class="cert-kicker"><span>ENTEC 2026</span><span>CERTIFICADO</span></p>
+        <h1>Um registro<br>da sua <em>jornada.</em></h1>
+        <p class="cert-description">Sua participação merece ficar para sempre. Consulte seu certificado com os dados usados no evento e baixe o PDF.</p>
+      </div>
+
+      <section class="cert-form-shell" aria-labelledby="cert-form-title">
+        <div class="cert-form-glow" aria-hidden="true"></div>
+        <div class="cert-form-content">
+          <div class="cert-form-head">
+            <span class="cert-symbol" aria-hidden="true">
+              <svg viewBox="0 0 40 40" fill="none"><path d="M20 4 33 11.5v17L20 36 7 28.5v-17L20 4Z" stroke="currentColor" stroke-width="1.3"/><path d="m14 20 4.2 4.2L27 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="cert-form-index">ACESSO AO DOCUMENTO <span aria-hidden="true">↗</span></span>
+          </div>
+          <h2 id="cert-form-title">Acesse seu<br>certificado<span class="cert-period">.</span></h2>
+          <p class="cert-form-help">Informe seu CPF e sua data de nascimento para consultar a disponibilidade do certificado.</p>
+          <form id="certificate-form" novalidate>
+            <div class="cert-field">
+              <label for="certificate-cpf">CPF</label>
+              <input id="certificate-cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="000.000.000-00" aria-describedby="certificate-cpf-error">
+              <p class="cert-field-error" id="certificate-cpf-error" role="alert" hidden></p>
+            </div>
+            <div class="cert-field">
+              <label for="certificate-birth-date">Data de nascimento</label>
+              <input id="certificate-birth-date" name="nascimento" type="date" autocomplete="bday" aria-describedby="certificate-birth-date-error">
+              <p class="cert-field-error" id="certificate-birth-date-error" role="alert" hidden></p>
+            </div>
+            <button class="cert-submit" id="certificate-submit" type="submit">
+              <span class="cert-submit-label">Acessar certificado</span>
+              <span class="cert-submit-icon" aria-hidden="true">↗</span>
+            </button>
+          </form>
+          <div class="cert-status" id="certificate-status" role="status" aria-live="polite" hidden></div>
+          <p class="cert-privacy">Seus dados são usados somente para localizar seu certificado.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="cert-footer"><span>© 2026 ENTEC · Instituto Federal do Tocantins</span><span>dev: cardoso</span></footer>
+  </div>
+</body>
+</html>

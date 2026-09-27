@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!--ENTEC:HEAD-->
+  <title>Galeria | ENTEC 2026</title>
+  <meta name="description" content="Explore as fotos oficiais do ENTEC 2026 e reviva os momentos do evento.">
+  <meta name="theme-color" content="#07003e">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://entecifto.online/galeria">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="ENTEC 2026">
+  <meta property="og:title" content="Galeria | ENTEC 2026">
+  <meta property="og:description" content="Explore as fotos oficiais do ENTEC 2026 e reviva os momentos do evento.">
+  <meta property="og:url" content="https://entecifto.online/galeria">
+  <meta property="og:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="ENTEC 2026 — Futuro conectado: como a tecnologia está redesenhando o mundo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Galeria | ENTEC 2026">
+  <meta name="twitter:description" content="Explore as fotos oficiais do ENTEC 2026 e reviva os momentos do evento.">
+  <meta name="twitter:image" content="https://entecifto.online/og-entec-2026.jpg">
+  <!--/ENTEC:HEAD-->
+  <base href="/galeria/">
+  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../hero.css">
+  <link rel="stylesheet" href="../certificado/certificado.css">
+  <link rel="stylesheet" href="./galeria.css?v=3">
+  <script src="../hero-shader.js?v=4" defer></script>
+  <script type="module" src="./galeria.js?v=3"></script>
+  <script type="module" src="/visitas.js"></script>
+</head>
+<body>
+  <div class="cert-page gallery-page">
+    <div class="uh-bg" aria-hidden="true"></div>
+    <div class="uh-shader" aria-hidden="true"><canvas id="uh-canvas"></canvas></div>
+
+    <header class="cert-header">
+      <a class="cert-logo" href="/" aria-label="ENTEC 2026 — início">
+        <img src="../assets/entec-icon-header.webp" alt="ENTEC" width="76" height="76">
+      </a>
+      <div class="cert-header-right">
+        <span class="cert-header-note">Instituto Federal do Tocantins <span class="cert-header-separator" aria-hidden="true"></span> 2026</span>
+        <button class="cert-menu-button" id="gallery-menu-button" type="button" aria-label="Abrir menu" aria-controls="gallery-menu" aria-expanded="false">
+          <img src="../assets/icon-menu.svg" width="27" height="27" alt="">
+        </button>
+      </div>
+      <nav class="cert-menu" id="gallery-menu" aria-label="Menu">
+        <a href="/">Início</a>
+        <a href="/galeria" aria-current="page">Galeria</a>
+        <a href="/resultados">Resultado dos stands</a>
+        <a href="/certificado">Certificado</a>
+        <a href="/sobre">Sobre</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="gallery-archive" id="fotos" aria-labelledby="gallery-title">
+        <div class="gallery-archive-inner">
+          <div class="gallery-head">
+            <h1 id="gallery-title">Galeria <span>ENTEC 2026</span></h1>
+            <p id="gallery-count">Carregando registros...</p>
+            <button class="gallery-mode-button" id="gallery-mode-button" type="button" aria-pressed="false">
+              <span class="gallery-mode-icon" aria-hidden="true"></span><span class="gallery-mode-label">Selecionar fotos</span>
+            </button>
+          </div>
+          <p class="gallery-status" id="gallery-status" role="status" aria-live="polite">Preparando a galeria...</p>
+          <div class="gallery-grid" id="gallery-grid" aria-label="Fotos do ENTEC 2026"></div>
+          <nav class="gallery-pagination" id="gallery-pagination" aria-label="Páginas da galeria" hidden>
+            <div class="gallery-pages" id="gallery-pages"></div>
+            <p class="gallery-page-info" id="gallery-page-info" aria-live="polite"></p>
+          </nav>
+        </div>
+      </section>
+    </main>
+
+    <footer class="cert-footer gallery-footer"><span>© 2026 ENTEC · Instituto Federal do Tocantins</span><span>dev: cardoso</span></footer>
+
+    <div class="gallery-selection-bar" id="gallery-selection-bar" hidden>
+      <span class="gallery-selection-count" id="gallery-selection-count" aria-live="polite"></span>
+      <div class="gallery-selection-actions">
+        <button id="gallery-download-selected" class="gallery-selection-download" type="button">Baixar selecionadas <span aria-hidden="true">↓</span></button>
+        <button id="gallery-clear-selection" class="gallery-selection-clear" type="button">Limpar seleção</button>
+      </div>
+    </div>
+
+    <dialog class="gallery-lightbox" id="gallery-lightbox" aria-label="Visualizador de fotos">
+      <div class="gallery-lightbox-top">
+        <span class="gallery-lightbox-brand">ENTEC <span>2026</span></span>
+        <span class="gallery-lightbox-counter" id="gallery-lightbox-counter"></span>
+        <button class="gallery-lightbox-close" id="gallery-lightbox-close" type="button" aria-label="Fechar visualizador">✕</button>
+      </div>
+      <div class="gallery-lightbox-stage" id="gallery-lightbox-stage">
+        <button class="gallery-lightbox-arrow gallery-lightbox-prev" id="gallery-lightbox-prev" type="button" aria-label="Foto anterior">←</button>
+        <div class="gallery-lightbox-image-wrap"><img id="gallery-lightbox-image" alt="" decoding="async"></div>
+        <button class="gallery-lightbox-arrow gallery-lightbox-next" id="gallery-lightbox-next" type="button" aria-label="Próxima foto">→</button>
+      </div>
+      <div class="gallery-lightbox-bottom">
+        <span class="gallery-lightbox-filename" id="gallery-lightbox-filename"></span>
+        <div class="gallery-lightbox-actions">
+          <button id="gallery-lightbox-select" type="button" aria-pressed="false">Selecionar</button>
+          <button id="gallery-lightbox-download" type="button">Baixar original <span aria-hidden="true">↓</span></button>
+        </div>
+      </div>
+    </dialog>
+    <p class="gallery-toast" id="gallery-toast" role="status" aria-live="polite" hidden></p>
+  </div>
+</body>
+</html>

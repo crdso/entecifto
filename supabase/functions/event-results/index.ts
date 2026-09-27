@@ -26,16 +26,16 @@ const ALLOWED_ORIGINS = [
 
 // Grupos participantes oficiais — escrita exata exigida pelo regulamento.
 const STAND_GROUPS = [
-  "SmartCity",
-  "FutureHouse",
-  "TechSocial",
-  "Os anônimos",
-  "MeteoLab",
-  "My Technology",
-  "Lan Room",
-  "BioTech",
-  "PlayZone",
-  "Mentes Conectadas",
+  "Biotech",
+  "Estação meteorológica",
+  "Futuro da IA",
+  "Inclusão Digital",
+  "Play Connect",
+  "Evolução dos Computadores",
+  "Cybersegurança",
+  "Casas Inteligentes",
+  "Cidades Inteligentes",
+  "Casas em 2030",
 ] as const;
 
 function getCorsHeaders(req: Request): Record<string, string> {
@@ -89,8 +89,8 @@ function parseScores(input: unknown): { scores?: ScoreEntry[]; error?: string } 
   for (const g of STAND_GROUPS) {
     const raw = obj[g];
     const n = typeof raw === "string" ? Number(raw.replace(",", ".")) : Number(raw);
-    if (!Number.isFinite(n) || n < 0 || n > 10) {
-      return { error: `Nota inválida para "${g}". Use um valor de 0 a 10.` };
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      return { error: `Nota inválida para "${g}". Use um valor de 0 a 100.` };
     }
     out.push({ group: g, score: Math.round(n * 100) / 100 });
   }
@@ -158,6 +158,7 @@ Deno.serve(async (req) => {
       first_score: top[0].score,
       second_score: top[1].score,
       third_score: top[2].score,
+      ranking: computeRanking(scores),
     };
   }
 

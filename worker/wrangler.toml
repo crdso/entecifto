@@ -1,0 +1,13 @@
+# Worker de download em ZIP da galeria (Cloudflare Workers + R2).
+# Publicação: npx wrangler deploy  (a partir desta pasta, após npx wrangler login)
+name = "entec-galeria-zip"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[r2_buckets]]
+binding = "GALERIA"
+bucket_name = "entec-galeria-2026"
+
+[vars]
+# Limite de fotos por ZIP (cada foto é uma leitura no R2 dentro da mesma requisição).
+MAX_PHOTOS = "300"
