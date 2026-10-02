@@ -33,9 +33,9 @@
   <link rel="stylesheet" href="../fonts.css">
   <link rel="stylesheet" href="../hero.css">
   <link rel="stylesheet" href="../certificado/certificado.css">
-  <link rel="stylesheet" href="./galeria.css?v=3">
+  <link rel="stylesheet" href="./galeria.css?v=4">
   <script src="../hero-shader.js?v=4" defer></script>
-  <script type="module" src="./galeria.js?v=3"></script>
+  <script type="module" src="./galeria.js?v=4"></script>
   <script type="module" src="/visitas.js"></script>
 </head>
 <body>
@@ -68,9 +68,22 @@
           <div class="gallery-head">
             <h1 id="gallery-title">Galeria <span>ENTEC 2026</span></h1>
             <p id="gallery-count">Carregando registros...</p>
-            <button class="gallery-mode-button" id="gallery-mode-button" type="button" aria-pressed="false">
-              <span class="gallery-mode-icon" aria-hidden="true"></span><span class="gallery-mode-label">Selecionar fotos</span>
-            </button>
+            <div class="gallery-selection-controls">
+              <button class="gallery-mode-button" id="gallery-select-page" type="button" hidden>Selecionar página</button>
+              <div class="gallery-selection-picker">
+                <div class="gallery-mode-group">
+                  <button class="gallery-mode-button" id="gallery-mode-button" type="button" aria-pressed="false">
+                    <span class="gallery-mode-icon" aria-hidden="true"></span><span class="gallery-mode-label">Selecionar fotos</span>
+                  </button>
+                  <button class="gallery-selection-toggle" id="gallery-selection-toggle" type="button" aria-label="Opções de seleção" aria-controls="gallery-selection-options" aria-expanded="false" hidden>
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+                <div class="gallery-selection-options" id="gallery-selection-options" hidden>
+                  <button id="gallery-select-all" type="button">Selecionar todas <span>Todas as fotos da galeria ENTEC</span></button>
+                </div>
+              </div>
+            </div>
           </div>
           <p class="gallery-status" id="gallery-status" role="status" aria-live="polite">Preparando a galeria...</p>
           <div class="gallery-grid" id="gallery-grid" aria-label="Fotos do ENTEC 2026"></div>

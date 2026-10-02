@@ -21,7 +21,6 @@ ARGS = [arg for arg in sys.argv[1:] if not arg.startswith('--')]
 DIST_MODE = '--dist' in sys.argv
 SITE = ROOT / ('dist' if DIST_MODE else 'site')
 ENV_NAMES = ('VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'VITE_ADMIN_EMAIL')
-MAX_ZIP_PHOTOS = 300
 _gallery = None
 _manifest = None
 
@@ -220,8 +219,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_json(400, {'error': 'Pedido inválido.'})
         if not isinstance(ids, list) or not ids:
             return self.send_json(400, {'error': 'Nenhuma foto selecionada.'})
-        if len(ids) > MAX_ZIP_PHOTOS:
-            return self.send_json(413, {'error': f'Selecione no máximo {MAX_ZIP_PHOTOS} fotos por download.'})
+        if len(ids) > len(manifest()['photos']):
+            return self.send_json(413, {'error': f"Selecione no máximo {len(manifest()['photos'])} fotos por download."})
         if any(not isinstance(i, str) or i not in data['index'] for i in ids):
             return self.send_json(400, {'error': 'Foto fora da galeria.'})
         indices = sorted({data['index'][i] for i in ids})
@@ -236,7 +235,7 @@ class Handler(SimpleHTTPRequestHandler):
         if parse_qs(urlsplit(self.path).query).get('v', [''])[0] != data['version']:
             return self.send_error(409, 'Galeria atualizada')
         indices = decode_selection(token, len(data['photos']))
-        if not indices or len(indices) > MAX_ZIP_PHOTOS:
+        if not indices or len(indices) > len(manifest()['photos']):
             return self.send_error(400, 'Selecao invalida')
         entries, trailer, total = zip_plan(data['photos'], indices)
         self.send_response(200)

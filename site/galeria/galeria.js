@@ -12,6 +12,10 @@ const pageInfo = document.getElementById('gallery-page-info');
 const countLabel = document.getElementById('gallery-count');
 const modeButton = document.getElementById('gallery-mode-button');
 const modeLabel = modeButton.querySelector('.gallery-mode-label');
+const selectPageButton = document.getElementById('gallery-select-page');
+const selectionToggle = document.getElementById('gallery-selection-toggle');
+const selectionOptions = document.getElementById('gallery-selection-options');
+const selectAllButton = document.getElementById('gallery-select-all');
 const selectionBar = document.getElementById('gallery-selection-bar');
 const selectionCount = document.getElementById('gallery-selection-count');
 const lightbox = document.getElementById('gallery-lightbox');
@@ -238,6 +242,12 @@ function updateSelection() {
   grid.classList.toggle('is-selecting', selectionMode);
   modeButton.setAttribute('aria-pressed', String(selectionMode));
   modeLabel.textContent = selectionMode ? 'Concluir seleção' : 'Selecionar fotos';
+  selectPageButton.hidden = !selectionMode;
+  selectionToggle.hidden = !selectionMode;
+  modeButton.parentElement.classList.toggle('is-selecting', selectionMode);
+  if (!selectionMode) setSelectionOptionsOpen(false);
+  selectPageButton.disabled = !photos.length;
+  selectAllButton.disabled = !photos.length;
   selectionBar.hidden = selected.size === 0;
   selectionCount.textContent = `${selected.size} ${selected.size === 1 ? 'foto selecionada' : 'fotos selecionadas'}`;
   cards.forEach(card => {
@@ -259,6 +269,19 @@ function toggleSelection(index) {
   if (selected.has(index)) selected.delete(index);
   else selected.add(index);
   if (selected.size) selectionMode = true;
+  updateSelection();
+}
+
+function setSelectionOptionsOpen(open, restoreFocus = false) {
+  selectionOptions.hidden = !open;
+  selectionToggle.setAttribute('aria-expanded', String(open));
+  if (restoreFocus) selectionToggle.focus();
+}
+
+function selectPhotos(first, last) {
+  for (let index = first; index < last; index++) selected.add(index);
+  selectionMode = true;
+  setSelectionOptionsOpen(false);
   updateSelection();
 }
 
@@ -418,6 +441,31 @@ grid.addEventListener('click', (event) => {
 modeButton.addEventListener('click', () => {
   selectionMode = !selectionMode;
   updateSelection();
+});
+selectPageButton.addEventListener('click', () => {
+  const first = (page - 1) * PAGE_SIZE;
+  selectPhotos(first, Math.min(first + PAGE_SIZE, photos.length));
+});
+selectionToggle.addEventListener('click', () => {
+  const open = selectionOptions.hidden;
+  setSelectionOptionsOpen(open);
+  if (open) selectAllButton.focus();
+});
+selectAllButton.addEventListener('click', () => {
+  selectPhotos(0, photos.length);
+  selectionToggle.focus();
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.gallery-selection-picker')) setSelectionOptionsOpen(false);
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !selectionOptions.hidden) {
+    event.preventDefault();
+    setSelectionOptionsOpen(false, true);
+  }
+});
+document.addEventListener('focusin', (event) => {
+  if (!event.target.closest('.gallery-selection-picker')) setSelectionOptionsOpen(false);
 });
 document.getElementById('gallery-clear-selection').addEventListener('click', () => {
   selected.clear();

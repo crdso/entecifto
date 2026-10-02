@@ -8,6 +8,4 @@ compatibility_date = "2026-09-01"
 binding = "GALERIA"
 bucket_name = "entec-galeria-2026"
 
-[vars]
-# Limite de fotos por ZIP (cada foto é uma leitura no R2 dentro da mesma requisição).
-MAX_PHOTOS = "300"
+# O limite padrão acompanha o total de fotos do manifesto da galeria.

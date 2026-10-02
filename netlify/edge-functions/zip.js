@@ -7,7 +7,6 @@ const R2_PUBLIC_BASE = 'https://pub-73a76ebfad354022a61b3486417cdbe4.r2.dev/';
 
 const handle = createZipHandler({
   basePath: '/api/zip',
-  maxPhotos: 300,
   async getOriginal(key) {
     const response = await fetch(R2_PUBLIC_BASE + key.split('/').map(encodeURIComponent).join('/'));
     if (!response.ok || !response.body) return null;
